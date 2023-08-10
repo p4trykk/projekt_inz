@@ -13,6 +13,8 @@ import os
 import customtkinter as ctk
 from customtkinter import CTkImage
 import threading
+from scipy.fftpack import fft, ifft
+from scipy.signal import hilbert
 
 pygame.mixer.init()
 
@@ -52,6 +54,8 @@ class Application(tk.Tk):
         self.create_widgets()
         self.output_file = None
         self.state('zoomed') 
+        self.file_for_menu_1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki\\output_20230808-121421.wav"
+        self.file_for_menu_2 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki\\output_20230808-123347.wav"
 
     def create_widgets(self):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
@@ -119,26 +123,44 @@ class Application(tk.Tk):
         # Wczytanie pliku
         fs, data = wav.read(self.input_file)
 
-        # Ustalenie częstotliwości, które chcemy odfiltrować
-        lowcut = 4000.0  # Dolna granica zakresu do odfiltrowania
-        highcut = 20000.0  # Górna granica zakresu do odfiltrowania
+        # Oblicz pierwotny poziom głośności dla oryginalnych danych
+        initial_rms = np.sqrt(np.mean(data**2))
 
-        # Filtracja sygnału
-        filtered_data = butter_bandstop_filter(data, lowcut, highcut, fs)
+        # 1. Filtracja dolnoprzepustowa
+        lowcut = 300.0  # Dolna granica zakresu dla filtru dolnoprzepustowego
+        nyq_rate = fs / 2.0
+        low = lowcut / nyq_rate
+        b, a = butter(6, low, btype='low')
+        y_filtered = lfilter(b, a, data)
 
-        # Wzmocnienie wysokich częstotliwości
-        high_passed_data = butter_highpass_filter(filtered_data, 1500, fs)
+        # 2. Dekompozycja sygnału za pomocą transformacji Hilberta
+        analytic_signal = hilbert(y_filtered)
+        amplitude_envelope = np.abs(analytic_signal)
 
-        # Wykres częstotliwości dla przefiltrowanego i niskoprzepustowego dźwięku
-        self.plot_frequency(high_passed_data, fs)
-        self.canvas.draw()  # Odświeżenie wykresu
+        # 3. FFT i manipulacja widmem
+        Y = fft(y_filtered)
+        freqs = np.fft.fftfreq(len(Y), 1/fs)
+        mask = np.where(freqs > 0)
+        desired_spectrum = np.ones_like(freqs)
+        desired_spectrum[mask] = 1 / np.sqrt(freqs[mask])
+        new_Y = Y * desired_spectrum[:, np.newaxis]  # Modyfikacja wymiarów do kompatybilności
+        new_y = np.real(ifft(new_Y))
+
+        # 4. Warstwowanie
+        mixed_signal = data + new_y
+        # Skaluj przetworzone dane, aby dopasować je do pierwotnego poziomu głośności
+        current_rms = np.sqrt(np.mean(mixed_signal**2))
+        scaling_factor = initial_rms / current_rms
+        mixed_signal *= scaling_factor
+
+        # Wykres częstotliwości dla przekształconego sygnału
+        self.plot_frequency(mixed_signal, fs)
 
         # Zapisanie przefiltrowanych danych do nowego pliku
-        # Zapisanie przefiltrowanych danych do nowego pliku
-        output_folder = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"  # ścieżka do katalogu, w którym chcesz zapisać plik
+        output_folder = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"
         current_time = time.strftime("%Y%m%d-%H%M%S")
         self.output_file = os.path.join(output_folder, f'output_{current_time}.wav')
-        wav.write(self.output_file, fs, high_passed_data.astype(np.int16))
+        wav.write(self.output_file, fs, mixed_signal.astype(np.int16))
 
         # Zatrzymaj odtwarzanie i usuń obecnie załadowany plik
         pygame.mixer.music.stop()
@@ -148,6 +170,7 @@ class Application(tk.Tk):
         pygame.mixer.music.load(self.output_file)
 
         tk.messagebox.showinfo("Filtering", "Filtering finished!")
+
 
     def play(self):
         if self.output_file is not None:  # Jeśli plik wyjściowy istnieje
@@ -182,12 +205,22 @@ class Application(tk.Tk):
             self.progressbar["value"] = 0
 
     def menu_command_1(self):
-        # Do something when menu 1 is selected
-        pass
+        self.output_file = self.file_for_menu_1
+        pygame.mixer.music.load(self.output_file)
+        pygame.mixer.music.play()
+        duration_ms = pygame.mixer.Sound(self.output_file).get_length() * 1000  
+        self.progressbar["maximum"] = duration_ms 
+        self.progressbar["value"] = 0
+        self.after(100, self.update_progressbar, duration_ms)
 
     def menu_command_2(self):
-        # Do something when menu 2 is selected
-        pass
+        self.output_file = self.file_for_menu_2
+        pygame.mixer.music.load(self.output_file)
+        pygame.mixer.music.play()
+        duration_ms = pygame.mixer.Sound(self.output_file).get_length() * 1000  
+        self.progressbar["maximum"] = duration_ms 
+        self.progressbar["value"] = 0
+        self.after(100, self.update_progressbar, duration_ms)
 
 if __name__ == "__main__":
     app = Application()
