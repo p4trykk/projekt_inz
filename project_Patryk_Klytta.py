@@ -15,8 +15,49 @@ from customtkinter import CTkImage
 import threading
 from scipy.fftpack import fft, ifft
 from scipy.signal import hilbert
+import wavio
+from PIL import Image, ImageTk
 
 pygame.mixer.init()
+
+#Generowanie Brown noises: (jednorazowo)
+# def generate_brown_noise(duration, sample_rate=44100):
+#     num_samples = int(sample_rate * duration)
+#     samples = np.random.randn(num_samples)
+#     brown_samples = np.cumsum(samples)
+#     brown_samples = brown_samples - np.mean(brown_samples)
+#     brown_samples = brown_samples / np.max(np.abs(brown_samples))
+#     return brown_samples
+
+# duration1 = 30.0  
+# sample_rate1 = 44100
+# brown_noise = generate_brown_noise(duration1, sample_rate1)
+
+# # Skalowanie
+# brown_noise_int = (brown_noise * np.iinfo(np.int16).max).astype(np.int16)
+
+# # Podaj ścieżkę do folderu, w którym chcesz zapisać plik
+# folder_path1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\" 
+
+# file_name1 = "brown_noise.wav"
+# full_path1 = folder_path1 + file_name1
+# wavio.write(full_path1, brown_noise_int, sample_rate1)
+
+# # Obliczenie widma
+# Y1 = np.fft.fft(brown_noise)
+# frequencies1 = np.fft.fftfreq(len(Y1), d=1.0/sample_rate1)
+
+# plt.figure()
+# plt.plot(frequencies1, 20 * np.log10(np.abs(Y1)))
+# plt.xscale('log')
+# plt.title("Widmo sygnału")
+# plt.xlabel("Częstotliwość [Hz]")
+# plt.ylabel("Amplituda [dB]")
+# plt.xlim([20, sample_rate1 / 2])
+
+# # Zapisz wykres do pliku
+# plt.savefig(folder_path1 + "brown_noise_spectrum.png")
+
 
 def butter_bandstop_filter(data, lowcut, highcut, fs, order=6):
     nyq = 0.5 * fs
@@ -54,8 +95,9 @@ class Application(tk.Tk):
         self.create_widgets()
         self.output_file = None
         self.state('zoomed') 
-        self.file_for_menu_1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki\\output_20230808-121421.wav"
+        self.file_for_menu_1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise.wav"
         self.file_for_menu_2 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki\\output_20230808-123347.wav"
+        self.file_for_menu_1_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise_spectrum.png"
 
     def create_widgets(self):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
@@ -96,7 +138,7 @@ class Application(tk.Tk):
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
         # Create buttons for the menu
-        self.menu_button_1 = tk.Button(menu_frame, text="Menu 1", command=self.menu_command_1)
+        self.menu_button_1 = tk.Button(menu_frame, text="Brown noise", command=self.menu_command_1)
         self.menu_button_1.pack(fill="x")
 
         self.menu_button_2 = tk.Button(menu_frame, text="Menu 2", command=self.menu_command_2)
@@ -206,6 +248,15 @@ class Application(tk.Tk):
 
     def menu_command_1(self):
         self.output_file = self.file_for_menu_1
+        spectrum_path = self.file_for_menu_1_widmo
+        imgWidmo = Image.open(spectrum_path)
+        # imgWidmo = ImageTk.PhotoImage(imgWidmo)
+        for ax in self.figure.axes:
+            ax.remove()
+        ax = self.figure.add_axes([0,0,1,1])
+        ax.imshow(imgWidmo)
+        ax.axis('off')  # Ukryj osie
+        self.canvas.draw()
         pygame.mixer.music.load(self.output_file)
         pygame.mixer.music.play()
         duration_ms = pygame.mixer.Sound(self.output_file).get_length() * 1000  
