@@ -77,13 +77,10 @@ def butter_highpass_filter(data, cutoff, fs, order=5):
 def rgb_to_hex(rgb):
     return '#%02x%02x%02x' % rgb
 
-# Używamy tego samego koloru co w obiekcie Figure
 matplotlib_rgb = (0.94, 0.94, 0.94)
 
-# Przeskalowanie wartości zmiennoprzecinkowych do zakresu 0-255
 tkinter_rgb = tuple(int(x * 255) for x in matplotlib_rgb)
 
-# Użycie funkcji rgb_to_hex do konwersji na format hex
 tkinter_hex = rgb_to_hex(tkinter_rgb)
 
 class Application(tk.Tk):
@@ -105,11 +102,11 @@ class Application(tk.Tk):
 
         self.input_button = ctk.CTkButton(self, text="Select input file", command=self.select_input, 
                                     corner_radius=10)
-        self.input_button.grid(row=0, column=0, columnspan=4, pady=10)  # Zmieniony columnspan na 4
+        self.input_button.grid(row=0, column=0, columnspan=4, pady=10)  
 
         self.filter_button = ctk.CTkButton(self, text="Filter", command=self.filter, 
                                     corner_radius=10)
-        self.filter_button.grid(row=1, column=0, columnspan=4, pady=10)  # Zmieniony columnspan na 4
+        self.filter_button.grid(row=1, column=0, columnspan=4, pady=10)  
 
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
                                     bg=tkinter_hex, relief="flat")
@@ -131,13 +128,11 @@ class Application(tk.Tk):
 
         self.figure = Figure(figsize=(12, 6), dpi=100, facecolor=(0.94, 0.94, 0.94))
         self.canvas = FigureCanvasTkAgg(self.figure, self)
-        self.canvas.get_tk_widget().grid(row=2, column=1, columnspan=3)  # Zmieniony columnspan na 4
+        self.canvas.get_tk_widget().grid(row=2, column=1, columnspan=3)  
         
-        # Create a menu frame
         menu_frame = tk.Frame(self, bg="#F0F0F0")
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
-        # Create buttons for the menu
         self.menu_button_1 = tk.Button(menu_frame, text="Brown noise", command=self.menu_command_1)
         self.menu_button_1.pack(fill="x")
 
@@ -162,70 +157,58 @@ class Application(tk.Tk):
         self.plot_frequency(data, fs)
 
     def filter(self):
-        # Wczytanie pliku
         fs, data = wav.read(self.input_file)
 
-        # Oblicz pierwotny poziom głośności dla oryginalnych danych
         initial_rms = np.sqrt(np.mean(data**2))
 
-        # 1. Filtracja dolnoprzepustowa
-        lowcut = 300.0  # Dolna granica zakresu dla filtru dolnoprzepustowego
+        lowcut = 300.0  
         nyq_rate = fs / 2.0
         low = lowcut / nyq_rate
         b, a = butter(6, low, btype='low')
         y_filtered = lfilter(b, a, data)
 
-        # 2. Dekompozycja sygnału za pomocą transformacji Hilberta
         analytic_signal = hilbert(y_filtered)
         amplitude_envelope = np.abs(analytic_signal)
 
-        # 3. FFT i manipulacja widmem
         Y = fft(y_filtered)
         freqs = np.fft.fftfreq(len(Y), 1/fs)
         mask = np.where(freqs > 0)
         desired_spectrum = np.ones_like(freqs)
         desired_spectrum[mask] = 1 / np.sqrt(freqs[mask])
-        new_Y = Y * desired_spectrum[:, np.newaxis]  # Modyfikacja wymiarów do kompatybilności
+        new_Y = Y * desired_spectrum[:, np.newaxis]  
         new_y = np.real(ifft(new_Y))
 
-        # 4. Warstwowanie
         mixed_signal = data + new_y
-        # Skaluj przetworzone dane, aby dopasować je do pierwotnego poziomu głośności
         current_rms = np.sqrt(np.mean(mixed_signal**2))
         scaling_factor = initial_rms / current_rms
         mixed_signal *= scaling_factor
 
-        # Wykres częstotliwości dla przekształconego sygnału
         self.plot_frequency(mixed_signal, fs)
 
-        # Zapisanie przefiltrowanych danych do nowego pliku
         output_folder = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"
         current_time = time.strftime("%Y%m%d-%H%M%S")
         self.output_file = os.path.join(output_folder, f'output_{current_time}.wav')
         wav.write(self.output_file, fs, mixed_signal.astype(np.int16))
 
-        # Zatrzymaj odtwarzanie i usuń obecnie załadowany plik
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
 
-        # Załaduj nowy plik do odtworzenia
         pygame.mixer.music.load(self.output_file)
 
         tk.messagebox.showinfo("Filtering", "Filtering finished!")
 
 
     def play(self):
-        if self.output_file is not None:  # Jeśli plik wyjściowy istnieje
+        if self.output_file is not None:  
             pygame.mixer.music.load(self.output_file)
             pygame.mixer.music.play()
 
-            duration_ms = pygame.mixer.Sound(self.output_file).get_length() * 1000  # Get length of audio file in milliseconds
-            self.progressbar["maximum"] = duration_ms  # Set length of progressbar to length of audio
+            duration_ms = pygame.mixer.Sound(self.output_file).get_length() * 1000  
+            self.progressbar["maximum"] = duration_ms  
 
-            # Reset progressbar; necessary in case this is not the first file that was played
             self.progressbar["value"] = 0
 
-            # Start updating progressbar
+
             self.after(100, self.update_progressbar, duration_ms)
 
     def pause(self):
@@ -235,15 +218,12 @@ class Application(tk.Tk):
         pygame.mixer.music.set_volume(int(volume)/100)
 
     def update_progressbar(self, duration_ms):
-        if pygame.mixer.music.get_busy():  # If a song is currently playing
-            # Update progress bar
-            elapsed_time_ms = pygame.mixer.music.get_pos()  # Get current position of song
+        if pygame.mixer.music.get_busy():  
+            elapsed_time_ms = pygame.mixer.music.get_pos() 
             self.progressbar["value"] = elapsed_time_ms
 
-            # Schedule to update progress bar again in 100 ms
             self.after(100, self.update_progressbar, duration_ms)
         else:
-            # Reset progress bar
             self.progressbar["value"] = 0
 
     def menu_command_1(self):
@@ -255,7 +235,7 @@ class Application(tk.Tk):
             ax.remove()
         ax = self.figure.add_axes([0,0,1,1])
         ax.imshow(imgWidmo)
-        ax.axis('off')  # Ukryj osie
+        ax.axis('off')
         self.canvas.draw()
         pygame.mixer.music.load(self.output_file)
         pygame.mixer.music.play()
