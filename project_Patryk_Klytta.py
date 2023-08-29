@@ -99,22 +99,31 @@ class Application(tk.Tk):
     def create_widgets(self):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
         self.pause_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\pause_icon.png")  
+  
+        original_logo = Image.open("C:\\Users\\pklyt\\Desktop\\studia\\inz\\logo.png")
+        resized_logo = original_logo.resize((100, 100))  # Assuming you want the logo to be 50x50 pixels
+        self.app_logo = ImageTk.PhotoImage(resized_logo)
+        self.logo_label = tk.Label(self, image=self.app_logo, bg=tkinter_hex)
+        self.logo_label.grid(row=0, column=0, padx=10, pady=(0,5), sticky="e")
+
+        self.app_name_label = tk.Label(self, text="AudioSpectra", font=("Arial", 24), bg=tkinter_hex)
+        self.app_name_label.grid(row=0, column=1, pady=(0,5), sticky="w")
 
         self.input_button = ctk.CTkButton(self, text="Select input file", command=self.select_input, 
                                     corner_radius=10)
-        self.input_button.grid(row=0, column=0, columnspan=4, pady=10)  
+        self.input_button.grid(row=0, column=2, padx=5, pady=(0,5), sticky="e")  
 
         self.filter_button = ctk.CTkButton(self, text="Filter", command=self.filter, 
                                     corner_radius=10)
-        self.filter_button.grid(row=1, column=0, columnspan=4, pady=10)  
+        self.filter_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
 
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
                                     bg=tkinter_hex, relief="flat")
-        self.play_button.grid(row=3, column=0, pady=10, padx=(100, 10))
+        self.play_button.grid(row=3, column=0, pady=10, padx=(100, 10), sticky="w")
 
         self.pause_button = tk.Button(self, image=self.pause_icon, command=self.pause, 
                                     bg=tkinter_hex, relief="flat")
-        self.pause_button.grid(row=3, column=1, pady=10)
+        self.pause_button.grid(row=3, column=1, pady=10, sticky="w")
 
         self.volume_slider = Scale(self, from_=0, to=100, orient=HORIZONTAL, command=self.update_volume)
         self.volume_slider.set(pygame.mixer.music.get_volume())  
@@ -124,7 +133,7 @@ class Application(tk.Tk):
         style.configure("custom.Horizontal.TProgressbar", foreground='#000437')
         
         self.progressbar = ttk.Progressbar(self, length=1000, style="custom.Horizontal.TProgressbar")
-        self.progressbar.grid(row=3, column=2, padx=15)
+        self.progressbar.grid(row=3, column=2, sticky="w")
 
         self.figure = Figure(figsize=(12, 6), dpi=100, facecolor=(0.94, 0.94, 0.94))
         self.canvas = FigureCanvasTkAgg(self.figure, self)
@@ -133,11 +142,12 @@ class Application(tk.Tk):
         menu_frame = tk.Frame(self, bg="#F0F0F0")
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
-        self.menu_button_1 = tk.Button(menu_frame, text="Brown noise", command=self.menu_command_1)
-        self.menu_button_1.pack(fill="x")
+        self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10)
+        self.menu_button_1.pack(fill="x", pady=(2,2))  # dodano pady, aby mieć trochę przestrzeni między przyciskami
 
-        self.menu_button_2 = tk.Button(menu_frame, text="Menu 2", command=self.menu_command_2)
-        self.menu_button_2.pack(fill="x")
+        self.menu_button_2 = ctk.CTkButton(menu_frame, text="White noise", command=self.menu_command_2, corner_radius=10)
+        self.menu_button_2.pack(fill="x", pady=(2,2))
+
 
     def plot_frequency(self, data, fs):
         fft = np.fft.fft(data)
