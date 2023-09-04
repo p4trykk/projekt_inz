@@ -17,6 +17,8 @@ from scipy.fftpack import fft, ifft
 from scipy.signal import hilbert
 import wavio
 from PIL import Image, ImageTk
+from scipy.io.wavfile import write
+from scipy.signal import lfilter
 
 pygame.mixer.init()
 
@@ -58,6 +60,86 @@ pygame.mixer.init()
 # # Zapisz wykres do pliku
 # plt.savefig(folder_path1 + "brown_noise_spectrum.png")
 
+#Generowanie White noises: (jednorazowo)
+
+# duration = 60.0  # sekundy
+# sample_rate = 44100  # Hz
+
+# # Generowanie szumu białego
+# num_samples = int(sample_rate * duration)
+# white_noise = np.random.randn(num_samples)
+# scaled_white_noise = np.int16(white_noise / np.max(np.abs(white_noise)) * 32767)
+
+# # Zapis do pliku
+# output_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise.wav"
+# write(output_path, sample_rate, scaled_white_noise)
+
+# # Obliczenie widma
+# Y = np.fft.fft(white_noise)
+# frequencies = np.fft.fftfreq(len(Y), 1.0/sample_rate)
+# positive_freq_idxs = np.where(frequencies > 0)
+# frequencies = frequencies[positive_freq_idxs]
+# magnitude = np.abs(Y[positive_freq_idxs])
+
+# # Wykres widma
+# plt.figure()
+# plt.plot(frequencies, 20 * np.log10(magnitude))
+# plt.xscale('log')
+# plt.title("Widmo sygnału szumu białego")
+# plt.xlabel("Częstotliwość [Hz]")
+# plt.ylabel("Amplituda [dB]")
+# plt.xlim([20, sample_rate / 2])
+
+# # Zapis wykresu do pliku
+# spectrum_image_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise_spectrum.png"
+# plt.savefig(spectrum_image_path)
+
+#Generowanie Pink noises: (jednorazowo)
+# def pink_noise(num_samples):
+#     # Filtr IIR
+#     b = np.array([0.049922035, -0.095993537, 0.050612699, -0.004408786])
+#     a = np.array([1, -2.494956002, 2.017265875, -0.522189400])
+#     zi = np.random.randn(3)  # Początkowy stan filtru
+
+#     pink = np.array([np.random.randn() for _ in range(num_samples)])
+#     pink, _ = lfilter(b, a, pink, zi=zi*pink[0])
+#     pink = pink/np.max(np.abs(pink))  # Normalizacja
+    
+#     return pink
+
+# # Parametry
+# duration = 60.0  # sekundy
+# sample_rate = 44100  # Hz
+# num_samples = int(sample_rate * duration)
+
+# # Generowanie szumu różowego
+# pink_signal = pink_noise(num_samples)
+# scaled_pink_signal = np.int16(pink_signal / np.max(np.abs(pink_signal)) * 32767)
+
+# # Zapis do pliku
+# output_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise.wav"
+# write(output_path, sample_rate, scaled_pink_signal)
+
+# # Obliczenie widma
+# Y = np.fft.fft(pink_signal)
+# frequencies = np.fft.fftfreq(len(Y), 1.0/sample_rate)
+# positive_freq_idxs = np.where(frequencies > 0)
+# frequencies = frequencies[positive_freq_idxs]
+# magnitude = np.abs(Y[positive_freq_idxs])
+
+# # Wykres widma
+# plt.figure()
+# plt.plot(frequencies, 20 * np.log10(magnitude))
+# plt.xscale('log')
+# plt.title("Widmo sygnału szumu różowego")
+# plt.xlabel("Częstotliwość [Hz]")
+# plt.ylabel("Amplituda [dB]")
+# plt.xlim([20, sample_rate / 2])
+
+# # Zapis wykresu do pliku
+# spectrum_image_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise_spectrum.png"
+# plt.savefig(spectrum_image_path)
+
 
 def butter_bandstop_filter(data, lowcut, highcut, fs, order=6):
     nyq = 0.5 * fs
@@ -93,8 +175,12 @@ class Application(tk.Tk):
         self.output_file = None
         self.state('zoomed') 
         self.file_for_menu_1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise.wav"
-        self.file_for_menu_2 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki\\output_20230808-123347.wav"
+        self.file_for_menu_2 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise.wav"
+        self.file_for_menu_3 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise.wav"
         self.file_for_menu_1_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise_spectrum.png"
+        self.file_for_menu_2_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise_spectrum.png"
+        self.file_for_menu_3_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise_spectrum.png"
+
 
     def create_widgets(self):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
@@ -143,10 +229,13 @@ class Application(tk.Tk):
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
         self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10)
-        self.menu_button_1.pack(fill="x", pady=(2,2))  # dodano pady, aby mieć trochę przestrzeni między przyciskami
+        self.menu_button_1.pack(fill="x", pady=(5,2))  
 
         self.menu_button_2 = ctk.CTkButton(menu_frame, text="White noise", command=self.menu_command_2, corner_radius=10)
-        self.menu_button_2.pack(fill="x", pady=(2,2))
+        self.menu_button_2.pack(fill="x", pady=(5,2))
+
+        self.menu_button_3 = ctk.CTkButton(menu_frame, text="Pink noise", command=self.menu_command_3, corner_radius=10)
+        self.menu_button_3.pack(fill="x", pady=(5,2))
 
 
     def plot_frequency(self, data, fs):
@@ -256,6 +345,33 @@ class Application(tk.Tk):
 
     def menu_command_2(self):
         self.output_file = self.file_for_menu_2
+        spectrum_path = self.file_for_menu_2_widmo
+        imgWidmo = Image.open(spectrum_path)
+        # imgWidmo = ImageTk.PhotoImage(imgWidmo)
+        for ax in self.figure.axes:
+            ax.remove()
+        ax = self.figure.add_axes([0,0,1,1])
+        ax.imshow(imgWidmo)
+        ax.axis('off')
+        self.canvas.draw()
+        pygame.mixer.music.load(self.output_file)
+        pygame.mixer.music.play()
+        duration_ms = pygame.mixer.Sound(self.output_file).get_length() * 1000  
+        self.progressbar["maximum"] = duration_ms 
+        self.progressbar["value"] = 0
+        self.after(100, self.update_progressbar, duration_ms)
+
+    def menu_command_3(self):
+        self.output_file = self.file_for_menu_3
+        spectrum_path = self.file_for_menu_3_widmo
+        imgWidmo = Image.open(spectrum_path)
+        # imgWidmo = ImageTk.PhotoImage(imgWidmo)
+        for ax in self.figure.axes:
+            ax.remove()
+        ax = self.figure.add_axes([0,0,1,1])
+        ax.imshow(imgWidmo)
+        ax.axis('off')
+        self.canvas.draw()
         pygame.mixer.music.load(self.output_file)
         pygame.mixer.music.play()
         duration_ms = pygame.mixer.Sound(self.output_file).get_length() * 1000  
