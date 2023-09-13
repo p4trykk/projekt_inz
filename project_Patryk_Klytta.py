@@ -171,6 +171,7 @@ class Application(tk.Tk):
         self.title("Audio Filter")
         self.configure(bg=tkinter_hex)
         pygame.mixer.init()
+        self.info_text = None
         self.create_widgets()
         self.output_file = None
         self.state('zoomed') 
@@ -182,6 +183,7 @@ class Application(tk.Tk):
         self.file_for_menu_3_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise_spectrum.png"
 
 
+
     def create_widgets(self):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
         self.pause_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\pause_icon.png")  
@@ -190,7 +192,7 @@ class Application(tk.Tk):
         resized_logo = original_logo.resize((100, 100))  # Assuming you want the logo to be 50x50 pixels
         self.app_logo = ImageTk.PhotoImage(resized_logo)
         self.logo_label = tk.Label(self, image=self.app_logo, bg=tkinter_hex)
-        self.logo_label.grid(row=0, column=0, padx=10, pady=(0,5), sticky="e")
+        self.logo_label.grid(row=0, column=0, padx=10, pady=(0,5))
 
         self.app_name_label = tk.Label(self, text="AudioSpectra", font=("Arial", 24), bg=tkinter_hex)
         self.app_name_label.grid(row=0, column=1, pady=(0,5), sticky="w")
@@ -205,37 +207,42 @@ class Application(tk.Tk):
 
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
                                     bg=tkinter_hex, relief="flat")
-        self.play_button.grid(row=3, column=0, pady=10, padx=(100, 10), sticky="w")
+        self.play_button.grid(row=4, column=0, pady=10, padx=(100, 10), sticky="w")
 
         self.pause_button = tk.Button(self, image=self.pause_icon, command=self.pause, 
                                     bg=tkinter_hex, relief="flat")
-        self.pause_button.grid(row=3, column=1, pady=10, sticky="w")
+        self.pause_button.grid(row=4, column=1, pady=10, sticky="w")
 
         self.volume_slider = Scale(self, from_=0, to=100, orient=HORIZONTAL, command=self.update_volume)
         self.volume_slider.set(pygame.mixer.music.get_volume())  
-        self.volume_slider.grid(row=3, column=3, pady=(0,15))
+        self.volume_slider.grid(row=4, column=3, pady=(0,15))
 
         style = ttk.Style()
         style.configure("custom.Horizontal.TProgressbar", foreground='#000437')
         
         self.progressbar = ttk.Progressbar(self, length=1000, style="custom.Horizontal.TProgressbar")
-        self.progressbar.grid(row=3, column=2, sticky="w")
+        self.progressbar.grid(row=4, column=2, sticky="w")
 
         self.figure = Figure(figsize=(12, 6), dpi=100, facecolor=(0.94, 0.94, 0.94))
         self.canvas = FigureCanvasTkAgg(self.figure, self)
-        self.canvas.get_tk_widget().grid(row=2, column=1, columnspan=3)  
+        self.canvas.get_tk_widget().grid(row=2, column=1, columnspan=3, rowspan=2)  
         
         menu_frame = tk.Frame(self, bg="#F0F0F0")
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
-        self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10)
+        self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10, width=20)
         self.menu_button_1.pack(fill="x", pady=(5,2))  
 
-        self.menu_button_2 = ctk.CTkButton(menu_frame, text="White noise", command=self.menu_command_2, corner_radius=10)
+        self.menu_button_2 = ctk.CTkButton(menu_frame, text="White noise", command=self.menu_command_2, corner_radius=10, width=20)
         self.menu_button_2.pack(fill="x", pady=(5,2))
 
-        self.menu_button_3 = ctk.CTkButton(menu_frame, text="Pink noise", command=self.menu_command_3, corner_radius=10)
+        self.menu_button_3 = ctk.CTkButton(menu_frame, text="Pink noise", command=self.menu_command_3, corner_radius=10, width=20)
         self.menu_button_3.pack(fill="x", pady=(5,2))
+
+        if not self.info_text:
+            self.info_text = tk.Label(self, bg="#F0F0F0", wraplength=300, justify='left', anchor='nw')
+            self.info_text.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=(10,0))
+        self.info_text.grid_remove()
 
 
     def plot_frequency(self, data, fs):
@@ -254,6 +261,8 @@ class Application(tk.Tk):
         self.input_file = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
         fs, data = wav.read(self.input_file)
         self.plot_frequency(data, fs)
+        if self.info_text:
+            self.info_text.grid_forget()
 
     def filter(self):
         fs, data = wav.read(self.input_file)
@@ -288,6 +297,10 @@ class Application(tk.Tk):
         current_time = time.strftime("%Y%m%d-%H%M%S")
         self.output_file = os.path.join(output_folder, f'output_{current_time}.wav')
         wav.write(self.output_file, fs, mixed_signal.astype(np.int16))
+
+        self.figure.set_size_inches(12, 6)
+        self.canvas.get_tk_widget().config(width=1200, height=600)
+
 
         pygame.mixer.music.stop()
         pygame.mixer.music.unload()
@@ -342,6 +355,9 @@ class Application(tk.Tk):
         self.progressbar["maximum"] = duration_ms 
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
+        self.info_text.grid()
+        self.info_text.config(text="Tutaj umieść informacje na temat szumu czerwonego.")
+
 
     def menu_command_2(self):
         self.output_file = self.file_for_menu_2
@@ -360,6 +376,8 @@ class Application(tk.Tk):
         self.progressbar["maximum"] = duration_ms 
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
+        self.info_text.grid()
+        self.info_text.config(text="Tutaj umieść informacje na temat szumu białego.")
 
     def menu_command_3(self):
         self.output_file = self.file_for_menu_3
@@ -378,6 +396,8 @@ class Application(tk.Tk):
         self.progressbar["maximum"] = duration_ms 
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
+        self.info_text.grid()
+        self.info_text.config(text="Tutaj umieść informacje na temat szumu różowego.")
 
 if __name__ == "__main__":
     app = Application()
