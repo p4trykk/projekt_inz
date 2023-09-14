@@ -228,6 +228,9 @@ class Application(tk.Tk):
         self.canvas.get_tk_widget().grid(row=2, column=1, columnspan=3, rowspan=2)  
         
         menu_frame = tk.Frame(self, bg="#F0F0F0")
+        menu_frame.grid_propagate(False)
+        menu_frame.config(width=200, height=500)  # Ustaw wymiary zgodnie z własnymi potrzebami
+
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
         self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10, width=20)
