@@ -165,6 +165,21 @@ tkinter_rgb = tuple(int(x * 255) for x in matplotlib_rgb)
 
 tkinter_hex = rgb_to_hex(tkinter_rgb)
 
+
+LIGHT_MODE = {
+    "bg": "#EDEDED",
+    "btn_bg": "#D4D4D4",
+    "btn_active": "#B5B5B5",
+    "text": "#000000",
+}
+
+DARK_MODE = {
+    "bg": "#2D2D2D",
+    "btn_bg": "#3F3F3F",
+    "btn_active": "#5F5F5F",
+    "text": "#FFFFFF",
+}
+
 class Application(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -181,8 +196,6 @@ class Application(tk.Tk):
         self.file_for_menu_1_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise_spectrum.png"
         self.file_for_menu_2_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise_spectrum.png"
         self.file_for_menu_3_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise_spectrum.png"
-
-
 
     def create_widgets(self):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
@@ -207,15 +220,15 @@ class Application(tk.Tk):
 
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
                                     bg=tkinter_hex, relief="flat")
-        self.play_button.grid(row=4, column=0, pady=10, padx=(100, 10), sticky="w")
+        self.play_button.grid(row=4, column=0, pady=(10,15), padx=(100, 10), sticky="w")
 
         self.pause_button = tk.Button(self, image=self.pause_icon, command=self.pause, 
                                     bg=tkinter_hex, relief="flat")
-        self.pause_button.grid(row=4, column=1, pady=10, sticky="w")
+        self.pause_button.grid(row=4, column=1, pady=(10,15), sticky="w")
 
-        self.volume_slider = Scale(self, from_=0, to=100, orient=HORIZONTAL, command=self.update_volume)
+        self.volume_slider = ctk.CTkSlider(self, from_=0, to=100, command=self.update_volume, width=100)
         self.volume_slider.set(pygame.mixer.music.get_volume())  
-        self.volume_slider.grid(row=4, column=3, pady=(0,15))
+        self.volume_slider.grid(row=4, column=3, pady=(0,0))
 
         style = ttk.Style()
         style.configure("custom.Horizontal.TProgressbar", foreground='#000437')
@@ -233,14 +246,14 @@ class Application(tk.Tk):
 
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
-        self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10, width=20)
-        self.menu_button_1.pack(fill="x", pady=(5,2))  
+        self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10, width=30)
+        self.menu_button_1.pack(fill="x", pady=(5,12))  
 
-        self.menu_button_2 = ctk.CTkButton(menu_frame, text="White noise", command=self.menu_command_2, corner_radius=10, width=20)
-        self.menu_button_2.pack(fill="x", pady=(5,2))
+        self.menu_button_2 = ctk.CTkButton(menu_frame, text="White noise", command=self.menu_command_2, corner_radius=10, width=30)
+        self.menu_button_2.pack(fill="x", pady=(5,12))
 
-        self.menu_button_3 = ctk.CTkButton(menu_frame, text="Pink noise", command=self.menu_command_3, corner_radius=10, width=20)
-        self.menu_button_3.pack(fill="x", pady=(5,2))
+        self.menu_button_3 = ctk.CTkButton(menu_frame, text="Pink noise", command=self.menu_command_3, corner_radius=10, width=30)
+        self.menu_button_3.pack(fill="x", pady=(5,12))
 
         if not self.info_text:
             self.info_text = tk.Label(self, bg="#F0F0F0", wraplength=300, justify='left', anchor='nw')
@@ -265,7 +278,7 @@ class Application(tk.Tk):
         fs, data = wav.read(self.input_file)
         self.plot_frequency(data, fs)
         if self.info_text:
-            self.info_text.grid_forget()
+            self.info_text.grid_remove()
 
     def filter(self):
         fs, data = wav.read(self.input_file)
