@@ -283,11 +283,11 @@ class Application(tk.Tk):
 
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
                                     bg=tkinter_hex, relief="flat")
-        self.play_button.grid(row=4, column=0, pady=(10,15), padx=(100, 10), sticky="w")
+        self.play_button.grid(row=4, column=0, pady=(10,15), padx=(100, 10), sticky="ws")
 
         self.pause_button = tk.Button(self, image=self.pause_icon, command=self.pause, 
                                     bg=tkinter_hex, relief="flat")
-        self.pause_button.grid(row=4, column=1, pady=(10,15), sticky="w")
+        self.pause_button.grid(row=4, column=1, pady=(10,15), sticky="ws")
 
         self.volume_slider = ctk.CTkSlider(self, from_=0, to=100, command=self.update_volume, width=100)
         self.volume_slider.set(pygame.mixer.music.get_volume())  
@@ -299,7 +299,7 @@ class Application(tk.Tk):
         self.progressbar = ttk.Progressbar(self, length=1000, style="custom.Horizontal.TProgressbar")
         self.progressbar.grid(row=4, column=2, sticky="w")
 
-        self.figure = Figure(figsize=(12, 6), dpi=100, facecolor=(0.94, 0.94, 0.94))
+        self.figure = Figure(figsize=(10, 6), dpi=100, facecolor=(0.94, 0.94, 0.94))
         self.canvas = FigureCanvasTkAgg(self.figure, self)
         self.canvas.get_tk_widget().grid(row=2, column=1, columnspan=3, rowspan=2)  
         
@@ -321,9 +321,15 @@ class Application(tk.Tk):
         self.menu_button_4 = ctk.CTkButton(menu_frame, text="Green noise", command=self.menu_command_4, corner_radius=10, width=30, hover_color='#100d33')
         self.menu_button_4.pack(fill="x", pady=(5,12))
 
+        self.file_listbox = tk.Listbox(menu_frame, bg="#F0F0F0", fg="#000000", height=15, width=30)
+        self.file_listbox.pack(fill="x", pady=(5,12))
+        self.file_listbox.bind('<<ListboxSelect>>', self.play_selected_file_with_progress)
+        self.update_file_list()
+
         if not self.info_text:
-            self.info_text = tk.Label(self, bg="#F0F0F0", wraplength=300, justify='left', anchor='nw')
+            self.info_text = ctk.CTkLabel(self, width=200, height=150, corner_radius=10)
             self.info_text.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=(10,0))
+            self.info_text.configure(bg_color="#1F6AA5", text_color="#F0F0F0", corner_radius=10)
         self.info_text.grid_remove()
 
 
@@ -391,6 +397,28 @@ class Application(tk.Tk):
 
         tk.messagebox.showinfo("Filtering", "Filtering finished!")
 
+    def update_file_list(self):
+        self.file_listbox.delete(0, tk.END)  # Usunięcie wszystkich elementów z listboxa
+        for file in os.listdir("C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"):  # Podaj ścieżkę do katalogu z plikami
+            if file.endswith(".wav"):
+                self.file_listbox.insert(tk.END, file)
+
+    def play_selected_file(self, event):
+        clicked_file = self.file_listbox.get(self.file_listbox.curselection())
+        path_to_clicked_file = os.path.join("C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki", clicked_file)
+        pygame.mixer.music.load(path_to_clicked_file)
+        pygame.mixer.music.play()
+
+    def play_selected_file_with_progress(self, event):
+        clicked_file = self.file_listbox.get(self.file_listbox.curselection())
+        path_to_clicked_file = os.path.join("C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki", clicked_file)
+        pygame.mixer.music.load(path_to_clicked_file)
+        pygame.mixer.music.play()
+        
+        duration_ms = pygame.mixer.Sound(path_to_clicked_file).get_length() * 1000
+        self.progressbar["maximum"] = duration_ms
+        self.progressbar["value"] = 0
+        self.after(100, self.update_progressbar, duration_ms)
 
     def play(self):
         if self.output_file is not None:  
@@ -438,7 +466,7 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.config(text="Tutaj umieść informacje na temat szumu czerwonego.")
+        self.info_text.configure(text="Tutaj umieść informacje na temat szumu czerwonego.")
 
 
     def menu_command_2(self):
@@ -459,7 +487,7 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.config(text="Tutaj umieść informacje na temat szumu białego.")
+        self.info_text.configure(text="Tutaj umieść informacje na temat szumu białego.")
 
     def menu_command_3(self):
         self.output_file = self.file_for_menu_3
@@ -479,7 +507,7 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.config(text="Tutaj umieść informacje na temat szumu różowego.")
+        self.info_text.configure(text="Tutaj umieść informacje na temat szumu różowego.")
 
     def menu_command_4(self):
         self.output_file = self.file_for_menu_4
@@ -499,7 +527,7 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.config(text="Tutaj umieść informacje na temat szumu zielonego.")
+        self.info_text.configure(text="Tutaj umieść informacje na temat szumu zielonego.")
 
 if __name__ == "__main__":
     app = Application()
