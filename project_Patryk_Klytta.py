@@ -258,7 +258,7 @@ class Application(tk.Tk):
         self.file_for_menu_2_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise_spectrum.png"
         self.file_for_menu_3_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise_spectrum.png"
         self.file_for_menu_4_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\green_noise_spectrum.png"
-    
+        self.auto_refresh()
 
     def create_widgets(self):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
@@ -270,15 +270,15 @@ class Application(tk.Tk):
         self.logo_label = tk.Label(self, image=self.app_logo, bg=tkinter_hex)
         self.logo_label.grid(row=0, column=0, padx=10, pady=(0,5))
 
-        self.app_name_label = tk.Label(self, text="AudioSpectra", font=("Arial", 24), bg=tkinter_hex)
+        self.app_name_label = tk.Label(self, text="AudioSpectra", font=("PT Sans", 24), bg=tkinter_hex)
         self.app_name_label.grid(row=0, column=1, pady=(0,5), sticky="w")
 
         self.input_button = ctk.CTkButton(self, text="Select input file", command=self.select_input, 
-                                    corner_radius=10, hover_color='#100d33')
+                                    corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
         self.input_button.grid(row=0, column=2, padx=5, pady=(0,5), sticky="e")  
 
         self.filter_button = ctk.CTkButton(self, text="Filter", command=self.filter, 
-                                    corner_radius=10, hover_color='#100d33')
+                                    corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
         self.filter_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
 
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
@@ -305,32 +305,47 @@ class Application(tk.Tk):
         
         menu_frame = tk.Frame(self, bg="#F0F0F0")
         menu_frame.grid_propagate(False)
-        menu_frame.config(width=200, height=500)  # Ustaw wymiary zgodnie z własnymi potrzebami
+        menu_frame.config(width=150, height=500)  # Ustaw wymiary zgodnie z własnymi potrzebami
 
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
-        self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10, width=30, hover_color='#100d33')
+        self.menu_button_1 = ctk.CTkButton(menu_frame, text="Brown noise", command=self.menu_command_1, corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14))
         self.menu_button_1.pack(fill="x", pady=(5,12))  
 
-        self.menu_button_2 = ctk.CTkButton(menu_frame, text="White noise", command=self.menu_command_2, corner_radius=10, width=30, hover_color='#100d33')
+        self.menu_button_2 = ctk.CTkButton(menu_frame, text="White noise", command=self.menu_command_2, corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14))
         self.menu_button_2.pack(fill="x", pady=(5,12))
 
-        self.menu_button_3 = ctk.CTkButton(menu_frame, text="Pink noise", command=self.menu_command_3, corner_radius=10, width=30, hover_color='#100d33')
+        self.menu_button_3 = ctk.CTkButton(menu_frame, text="Pink noise", command=self.menu_command_3, corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14))
         self.menu_button_3.pack(fill="x", pady=(5,12))
 
-        self.menu_button_4 = ctk.CTkButton(menu_frame, text="Green noise", command=self.menu_command_4, corner_radius=10, width=30, hover_color='#100d33')
+        self.menu_button_4 = ctk.CTkButton(menu_frame, text="Green noise", command=self.menu_command_4, corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14))
         self.menu_button_4.pack(fill="x", pady=(5,12))
 
-        self.file_listbox = tk.Listbox(menu_frame, bg="#F0F0F0", fg="#000000", height=15, width=30)
+        self.file_listbox = tk.Listbox(menu_frame, bg="#F0F0F0", fg="#000000", height=15, width=30, font=("PT Sans", 8))
+        self.file_listbox.config(relief="solid", highlightbackground="#1F6AA5", highlightthickness=2, selectbackground="#1F6AA5")
         self.file_listbox.pack(fill="x", pady=(5,12))
         self.file_listbox.bind('<<ListboxSelect>>', self.play_selected_file_with_progress)
         self.update_file_list()
 
+        self.settings_box = ctk.CTkButton(self, width=150, height=410, corner_radius=10,  text="")
+        self.settings_box.grid(row=2, column=0, columnspan=2, sticky="ne", pady=(5,0))
+        self.settings_box.configure(state="disabled")
+        
         if not self.info_text:
-            self.info_text = ctk.CTkLabel(self, width=200, height=150, corner_radius=10)
+            self.info_text = ctk.CTkButton(self, width=200, height=150, corner_radius=10)
             self.info_text.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=(10,0))
-            self.info_text.configure(bg_color="#1F6AA5", text_color="#F0F0F0", corner_radius=10)
+            # self.info_text.configure(bg_color="#1F6AA5", text_color="#F0F0F0", corner_radius=10, font=("PT Sans", 14))
         self.info_text.grid_remove()
+
+    def auto_refresh(self):
+        self.update_file_list()
+        self.after(10000, self.auto_refresh)
+
+    def hide_plot(self):
+        if self.figure.axes:
+            for ax in self.figure.axes:
+                ax.remove()
+            self.canvas.draw()
 
 
     def plot_frequency(self, data, fs):
@@ -414,6 +429,7 @@ class Application(tk.Tk):
         path_to_clicked_file = os.path.join("C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki", clicked_file)
         pygame.mixer.music.load(path_to_clicked_file)
         pygame.mixer.music.play()
+        self.hide_plot()
         
         duration_ms = pygame.mixer.Sound(path_to_clicked_file).get_length() * 1000
         self.progressbar["maximum"] = duration_ms
