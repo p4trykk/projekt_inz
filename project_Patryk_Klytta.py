@@ -299,9 +299,9 @@ class Application(tk.Tk):
         self.progressbar = ttk.Progressbar(self, length=1000, style="custom.Horizontal.TProgressbar")
         self.progressbar.grid(row=4, column=2, sticky="w")
 
-        self.figure = Figure(figsize=(10, 6), dpi=100, facecolor=(0.94, 0.94, 0.94))
+        self.figure = Figure(figsize=(9, 6), dpi=100, facecolor=(0.94, 0.94, 0.94))
         self.canvas = FigureCanvasTkAgg(self.figure, self)
-        self.canvas.get_tk_widget().grid(row=2, column=1, columnspan=3, rowspan=2)  
+        self.canvas.get_tk_widget().grid(row=2, column=1, columnspan=3, rowspan=2, padx=(20,0))  
         
         menu_frame = tk.Frame(self, bg="#F0F0F0")
         menu_frame.grid_propagate(False)
@@ -330,6 +330,14 @@ class Application(tk.Tk):
         self.settings_box = ctk.CTkButton(self, width=150, height=410, corner_radius=10,  text="")
         self.settings_box.grid(row=2, column=0, columnspan=2, sticky="ne", pady=(5,0))
         self.settings_box.configure(state="disabled")
+
+        self.lowcut_label = tk.Label(self, text="Lowcut Value", font=("PT Sans", 12), bg="#1F6AA5", fg="#F0F0F0")
+        self.lowcut_label.grid(row=2, column=0, columnspan=2, sticky="ne", pady=(10, 5), padx=(0,25))
+
+        self.lowcut_scale = ctk.CTkSlider(self, from_=0, to=1000, command=self.update_lowcut_value, width=100, bg_color="#1F6AA5", button_color="#F0F0F0")
+        self.lowcut_scale.set(300)  # Ustaw domyślną wartość
+        self.lowcut_scale.grid(row=2, column=0, columnspan=2, sticky="ne", padx=(0,25), pady=(50,0))
+
         
         if not self.info_text:
             self.info_text = ctk.CTkButton(self, width=200, height=150, corner_radius=10)
@@ -367,12 +375,18 @@ class Application(tk.Tk):
         if self.info_text:
             self.info_text.grid_remove()
 
+    def update_lowcut_value(self, value):
+        self.lowcut = float(value)
+
     def filter(self):
         fs, data = wav.read(self.input_file)
 
         initial_rms = np.sqrt(np.mean(data**2))
 
-        lowcut = 300.0  
+        # lowcut = 300.0  
+
+        lowcut = self.lowcut
+        fs, data = wav.read(self.input_file)
         nyq_rate = fs / 2.0
         low = lowcut / nyq_rate
         b, a = butter(6, low, btype='low')
