@@ -4,6 +4,7 @@ from scipy.signal import butter, lfilter, buttord, filtfilt
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.patches import Rectangle
 from tkinter import Tk, Button, filedialog, PhotoImage, Scale, HORIZONTAL, messagebox
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -21,6 +22,8 @@ from scipy.io.wavfile import write
 from scipy.stats import norm
 from numpy import int16
 import tkinter.font as tkFont
+import webbrowser
+
 
 pygame.mixer.init()
 
@@ -232,12 +235,12 @@ LIGHT_MODE = {
     "text": "#000000",
 }
 
-DARK_MODE = {
-    "bg": "#2D2D2D",
-    "btn_bg": "#3F3F3F",
-    "btn_active": "#5F5F5F",
-    "text": "#FFFFFF",
-}
+# DARK_MODE = {
+#     "bg": "#2D2D2D",
+#     "btn_bg": "#3F3F3F",
+#     "btn_active": "#5F5F5F",
+#     "text": "#FFFFFF",
+# }
 
 
 class Application(tk.Tk):
@@ -253,7 +256,7 @@ class Application(tk.Tk):
         self.file_for_menu_1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise.wav"
         self.file_for_menu_2 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise.wav"
         self.file_for_menu_3 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise.wav"
-        self.file_for_menu_4 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\green_noise.wav"
+        self.file_for_menu_4 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\green_noise.mp3"
         self.file_for_menu_1_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise_spectrum.png"
         self.file_for_menu_2_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise_spectrum.png"
         self.file_for_menu_3_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise_spectrum.png"
@@ -264,14 +267,14 @@ class Application(tk.Tk):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
         self.pause_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\pause_icon.png")  
   
-        original_logo = Image.open("C:\\Users\\pklyt\\Desktop\\studia\\inz\\logo.png")
-        resized_logo = original_logo.resize((100, 100))  # Assuming you want the logo to be 50x50 pixels
+        original_logo = Image.open("C:\\Users\\pklyt\\Desktop\\studia\\inz\\audio-editing2.png")
+        resized_logo = original_logo.resize((100, 100)) 
         self.app_logo = ImageTk.PhotoImage(resized_logo)
         self.logo_label = tk.Label(self, image=self.app_logo, bg=tkinter_hex)
         self.logo_label.grid(row=0, column=0, padx=10, pady=(0,5))
 
         self.app_name_label = tk.Label(self, text="AudioSpectra", font=("PT Sans", 24), bg=tkinter_hex)
-        self.app_name_label.grid(row=0, column=1, pady=(0,5), sticky="w")
+        self.app_name_label.grid(row=0, column=1, pady=(0,5), sticky='w')
 
         self.input_button = ctk.CTkButton(self, text="Select input file", command=self.select_input, 
                                     corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
@@ -292,6 +295,8 @@ class Application(tk.Tk):
         self.volume_slider = ctk.CTkSlider(self, from_=0, to=100, command=self.update_volume, width=100)
         self.volume_slider.set(pygame.mixer.music.get_volume())  
         self.volume_slider.grid(row=4, column=3, pady=(0,0))
+        self.volume_slider.bind("<Enter>", self.show_volume)  
+        self.volume_slider.bind("<Leave>", self.hide_volume)
 
         style = ttk.Style()
         style.configure("custom.Horizontal.TProgressbar", foreground='#000437')
@@ -305,7 +310,7 @@ class Application(tk.Tk):
         
         menu_frame = tk.Frame(self, bg="#F0F0F0")
         menu_frame.grid_propagate(False)
-        menu_frame.config(width=150, height=500)  # Ustaw wymiary zgodnie z własnymi potrzebami
+        menu_frame.config(width=150, height=500) 
 
         menu_frame.grid(row=2, column=0, sticky="nsew", padx=(10,0))
 
@@ -334,10 +339,12 @@ class Application(tk.Tk):
         self.lowcut_label = tk.Label(self, text="Lowcut Value", font=("PT Sans", 12), bg="#1F6AA5", fg="#F0F0F0")
         self.lowcut_label.grid(row=2, column=0, columnspan=2, sticky="ne", pady=(10, 5), padx=(0,25))
 
-        self.lowcut_scale = ctk.CTkSlider(self, from_=0, to=1000, command=self.update_lowcut_value, width=100, bg_color="#1F6AA5", button_color="#F0F0F0")
-        self.lowcut_scale.set(300)  # Ustaw domyślną wartość
-        self.lowcut_scale.grid(row=2, column=0, columnspan=2, sticky="ne", padx=(0,25), pady=(50,0))
-
+        self.lowcut_scale = ctk.CTkSlider(self, from_=100, to=1000, command=self.update_lowcut_value, width=100, bg_color="#1F6AA5", button_color="#F0F0F0")
+        self.lowcut_scale.set(300)  
+        self.lowcut_scale.grid(row=2, column=0, columnspan=2, sticky="ne", padx=(0,45), pady=(50,0))
+        
+        self.lowcut_value_label = ctk.CTkLabel(self, text="300 ", fg_color="#1F6AA5", width=40)  
+        self.lowcut_value_label.grid(row=2, column=0,  columnspan=2, sticky="ne", padx=(0,2), pady=(44,0))
         
         if not self.info_text:
             self.info_text = ctk.CTkButton(self, width=200, height=150, corner_radius=10)
@@ -345,6 +352,7 @@ class Application(tk.Tk):
             # self.info_text.configure(bg_color="#1F6AA5", text_color="#F0F0F0", corner_radius=10, font=("PT Sans", 14))
         self.info_text.grid_remove()
 
+        
     def auto_refresh(self):
         self.update_file_list()
         self.after(10000, self.auto_refresh)
@@ -355,6 +363,22 @@ class Application(tk.Tk):
                 ax.remove()
             self.canvas.draw()
 
+    def show_volume(self, event=None):
+        if not hasattr(self, 'tooltip'):  
+            self.tooltip = tk.Toplevel(self)
+            self.tooltip.wm_overrideredirect(True)
+            self.tooltip.configure(bg="#D4D4D4", padx=10, pady=5)  
+            tk.Label(self.tooltip, text="Volume", bg="#D4D4D4").pack()
+
+        x, y, _, _ = self.volume_slider.bbox("insert")  
+        x += self.volume_slider.winfo_rootx() + 20  
+        y += self.volume_slider.winfo_rooty() + 20  
+        self.tooltip.wm_geometry(f"+{x}+{y}")
+        self.tooltip.deiconify()
+
+    def hide_volume(self, event=None):
+        if hasattr(self, 'tooltip'):  
+            self.tooltip.withdraw()
 
     def plot_frequency(self, data, fs):
         fft = np.fft.fft(data)
@@ -376,7 +400,9 @@ class Application(tk.Tk):
             self.info_text.grid_remove()
 
     def update_lowcut_value(self, value):
-        self.lowcut = float(value)
+        self.lowcut = round(float(value))
+        self.lowcut_scale.set(self.lowcut)
+        self.lowcut_value_label.configure(text=f"{value}")
 
     def filter(self):
         fs, data = wav.read(self.input_file)
@@ -427,8 +453,8 @@ class Application(tk.Tk):
         tk.messagebox.showinfo("Filtering", "Filtering finished!")
 
     def update_file_list(self):
-        self.file_listbox.delete(0, tk.END)  # Usunięcie wszystkich elementów z listboxa
-        for file in os.listdir("C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"):  # Podaj ścieżkę do katalogu z plikami
+        self.file_listbox.delete(0, tk.END)  
+        for file in os.listdir("C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"):  
             if file.endswith(".wav"):
                 self.file_listbox.insert(tk.END, file)
 
@@ -478,6 +504,19 @@ class Application(tk.Tk):
         else:
             self.progressbar["value"] = 0
 
+    def open_webpage_brownNoise(self, event):
+        webbrowser.open("https://www.nytimes.com/interactive/2022/09/23/well/mind/brown-noise.html")
+
+    def open_webpage_whiteNoise(self, event):
+        webbrowser.open("https://en.wikipedia.org/wiki/White_noise")
+
+    def open_webpage_pinkNoise(self, event):
+        webbrowser.open("https://en.wikipedia.org/wiki/Pink_noise")
+    
+    def open_webpage_greenNoise(self, event):
+        webbrowser.open("https://www.bettersleep.com/blog/benefits-of-green-noise/")
+        
+
     def menu_command_1(self):
         self.output_file = self.file_for_menu_1
         spectrum_path = self.file_for_menu_1_widmo
@@ -496,8 +535,8 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.configure(text="Tutaj umieść informacje na temat szumu czerwonego.")
-
+        self.info_text.configure(text="More information about brown noise click here.", cursor="hand2")
+        self.info_text.bind("<Button-1>", self.open_webpage_brownNoise)
 
     def menu_command_2(self):
         self.output_file = self.file_for_menu_2
@@ -517,7 +556,8 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.configure(text="Tutaj umieść informacje na temat szumu białego.")
+        self.info_text.configure(text="More information about white noise click here.", cursor="hand2")
+        self.info_text.bind("<Button-1>", self.open_webpage_whiteNoise)
 
     def menu_command_3(self):
         self.output_file = self.file_for_menu_3
@@ -537,7 +577,8 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.configure(text="Tutaj umieść informacje na temat szumu różowego.")
+        self.info_text.configure(text="More information about pink noise click here.", cursor="hand2")
+        self.info_text.bind("<Button-1>", self.open_webpage_pinkNoise)
 
     def menu_command_4(self):
         self.output_file = self.file_for_menu_4
@@ -557,7 +598,8 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.configure(text="Tutaj umieść informacje na temat szumu zielonego.")
+        self.info_text.configure(text="More information about green noise click here.", cursor="hand2")
+        self.info_text.bind("<Button-1>", self.open_webpage_greenNoise)
 
 if __name__ == "__main__":
     app = Application()
