@@ -23,184 +23,10 @@ from scipy.stats import norm
 from numpy import int16
 import tkinter.font as tkFont
 import webbrowser
+import pyaudio
 
 
 pygame.mixer.init()
-
-#Generowanie Brown noises: (jednorazowo)
-# def generate_brown_noise(duration, sample_rate=44100):
-#     num_samples = int(sample_rate * duration)
-#     samples = np.random.randn(num_samples)
-#     brown_samples = np.cumsum(samples)
-#     brown_samples = brown_samples - np.mean(brown_samples)
-#     brown_samples = brown_samples / np.max(np.abs(brown_samples))
-#     return brown_samples
-
-# duration1 = 30.0  
-# sample_rate1 = 44100
-# brown_noise = generate_brown_noise(duration1, sample_rate1)
-
-# # Skalowanie
-# brown_noise_int = (brown_noise * np.iinfo(np.int16).max).astype(np.int16)
-
-# # Podaj ścieżkę do folderu, w którym chcesz zapisać plik
-# folder_path1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\" 
-
-# file_name1 = "brown_noise.wav"
-# full_path1 = folder_path1 + file_name1
-# wavio.write(full_path1, brown_noise_int, sample_rate1)
-
-# # Obliczenie widma
-# Y1 = np.fft.fft(brown_noise)
-# frequencies1 = np.fft.fftfreq(len(Y1), d=1.0/sample_rate1)
-
-# plt.figure()
-# plt.plot(frequencies1, 20 * np.log10(np.abs(Y1)))
-# plt.xscale('log')
-# plt.title("Widmo sygnału")
-# plt.xlabel("Częstotliwość [Hz]")
-# plt.ylabel("Amplituda [dB]")
-# plt.xlim([20, sample_rate1 / 2])
-
-# # Zapisz wykres do pliku
-# plt.savefig(folder_path1 + "brown_noise_spectrum.png")
-
-#Generowanie White noises: (jednorazowo)
-
-# duration = 60.0  # sekundy
-# sample_rate = 44100  # Hz
-
-# # Generowanie szumu białego
-# num_samples = int(sample_rate * duration)
-# white_noise = np.random.randn(num_samples)
-# scaled_white_noise = np.int16(white_noise / np.max(np.abs(white_noise)) * 32767)
-
-# # Zapis do pliku
-# output_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise.wav"
-# write(output_path, sample_rate, scaled_white_noise)
-
-# # Obliczenie widma
-# Y = np.fft.fft(white_noise)
-# frequencies = np.fft.fftfreq(len(Y), 1.0/sample_rate)
-# positive_freq_idxs = np.where(frequencies > 0)
-# frequencies = frequencies[positive_freq_idxs]
-# magnitude = np.abs(Y[positive_freq_idxs])
-
-# # Wykres widma
-# plt.figure()
-# plt.plot(frequencies, 20 * np.log10(magnitude))
-# plt.xscale('log')
-# plt.title("Widmo sygnału szumu białego")
-# plt.xlabel("Częstotliwość [Hz]")
-# plt.ylabel("Amplituda [dB]")
-# plt.xlim([20, sample_rate / 2])
-
-# # Zapis wykresu do pliku
-# spectrum_image_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise_spectrum.png"
-# plt.savefig(spectrum_image_path)
-
-#Generowanie Pink noises: (jednorazowo)
-# def pink_noise(num_samples):
-#     # Filtr IIR
-#     b = np.array([0.049922035, -0.095993537, 0.050612699, -0.004408786])
-#     a = np.array([1, -2.494956002, 2.017265875, -0.522189400])
-#     zi = np.random.randn(3)  # Początkowy stan filtru
-
-#     pink = np.array([np.random.randn() for _ in range(num_samples)])
-#     pink, _ = lfilter(b, a, pink, zi=zi*pink[0])
-#     pink = pink/np.max(np.abs(pink))  # Normalizacja
-    
-#     return pink
-
-# # Parametry
-# duration = 60.0  # sekundy
-# sample_rate = 44100  # Hz
-# num_samples = int(sample_rate * duration)
-
-# # Generowanie szumu różowego
-# pink_signal = pink_noise(num_samples)
-# scaled_pink_signal = np.int16(pink_signal / np.max(np.abs(pink_signal)) * 32767)
-
-# # Zapis do pliku
-# output_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise.wav"
-# write(output_path, sample_rate, scaled_pink_signal)
-
-# # Obliczenie widma
-# Y = np.fft.fft(pink_signal)
-# frequencies = np.fft.fftfreq(len(Y), 1.0/sample_rate)
-# positive_freq_idxs = np.where(frequencies > 0)
-# frequencies = frequencies[positive_freq_idxs]
-# magnitude = np.abs(Y[positive_freq_idxs])
-
-# # Wykres widma
-# plt.figure()
-# plt.plot(frequencies, 20 * np.log10(magnitude))
-# plt.xscale('log')
-# plt.title("Widmo sygnału szumu różowego")
-# plt.xlabel("Częstotliwość [Hz]")
-# plt.ylabel("Amplituda [dB]")
-# plt.xlim([20, sample_rate / 2])
-
-# # Zapis wykresu do pliku
-# spectrum_image_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise_spectrum.png"
-# plt.savefig(spectrum_image_path)
-
-
-#Generowanie Green noises: (jednorazowo)
-# def turn_green(signal, samp_rate):
-#     # start and stop of green noise range
-#     left = 1612 # Hz
-#     right = 2919 # Hz
-
-#     nyquist = (samp_rate/2)
-#     left_pass  = 1.1*left/nyquist
-#     left_stop  = 0.9*left/nyquist
-#     right_pass = 0.9*right/nyquist
-#     right_stop = 1.1*right/nyquist
-
-#     (N, Wn) = buttord(wp=[left_pass, right_pass],
-#                       ws=[left_stop, right_stop],
-#                       gpass=2, gstop=30, analog=0)
-#     (b, a) = butter(N, Wn, btype='band', analog=0, output='ba')
-#     return filtfilt(b, a, signal)
-
-# def to_integer(signal):
-#     # Take samples in [-1, 1] and scale to 16-bit integers,
-#     # values between -2^15 and 2^15 - 1.
-#     signal /= max(signal)
-#     return int16(signal*(2**15 - 1))
-
-# N = 48000 # samples per second
-
-# duration = 60.0 # seconds
-# num_samples = int(N * duration)
-
-# white_noise= norm.rvs(0, 1, num_samples) 
-# green = turn_green(white_noise, N)
-
-# # Zapisz szum do pliku .wav
-# output_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\green_noise.wav"
-# write(output_path, N, to_integer(green))
-
-# # Obliczenie widma
-# Y = np.fft.fft(green)
-# frequencies = np.fft.fftfreq(len(Y), 1.0/N)
-# positive_freq_idxs = np.where(frequencies > 0)
-# frequencies = frequencies[positive_freq_idxs]
-# magnitude = np.abs(Y[positive_freq_idxs])
-
-# # Wykres widma
-# plt.figure()
-# plt.plot(frequencies, 20 * np.log10(magnitude))
-# plt.xscale('log')
-# plt.title("Widmo sygnału szumu zielonego")
-# plt.xlabel("Częstotliwość [Hz]")
-# plt.ylabel("Amplituda [dB]")
-# plt.xlim((1500, 3000))
-
-# # Zapisz wykres do pliku .png
-# spectrum_image_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\green_noise_spectrum.png"
-# plt.savefig(spectrum_image_path)
 
 
 def butter_bandstop_filter(data, lowcut, highcut, fs, order=6):
@@ -246,12 +72,14 @@ LIGHT_MODE = {
 class Application(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Audio Filter")
+        self.title("Audio Spectra")
         self.configure(bg=tkinter_hex)
         pygame.mixer.init()
         self.info_text = None
         self.create_widgets()
         self.output_file = None
+        self.stream = None
+        self.p = None
         self.state('zoomed') 
         self.file_for_menu_1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise.wav"
         self.file_for_menu_2 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\white_noise.wav"
@@ -262,6 +90,7 @@ class Application(tk.Tk):
         self.file_for_menu_3_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\pink_noise_spectrum.png"
         self.file_for_menu_4_widmo = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\green_noise_spectrum.png"
         self.auto_refresh()
+
 
     def create_widgets(self):
         self.play_icon = PhotoImage(file="C:\\Users\\pklyt\\Desktop\\studia\\inz\\play_icon.png")  
@@ -276,13 +105,19 @@ class Application(tk.Tk):
         self.app_name_label = tk.Label(self, text="AudioSpectra", font=("PT Sans", 24), bg=tkinter_hex)
         self.app_name_label.grid(row=0, column=1, pady=(0,5), sticky='w')
 
-        self.input_button = ctk.CTkButton(self, text="Select input file", command=self.select_input, 
-                                    corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
-        self.input_button.grid(row=0, column=2, padx=5, pady=(0,5), sticky="e")  
+        # self.input_button = ctk.CTkButton(self, text="Select input file", command=self.select_input, 
+        #                             corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
+        # self.input_button.grid(row=0, column=2, padx=5, pady=(0,5), sticky="e")  
 
-        self.filter_button = ctk.CTkButton(self, text="Filter", command=self.filter, 
-                                    corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
-        self.filter_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
+        # self.filter_button = ctk.CTkButton(self, text="Filter", command=self.filter, 
+        #                             corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
+        # self.filter_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
+
+        self.start_noise_cancelling_button = tk.Button(self, text="Start", command=self.start_noise_cancelling)
+        self.start_noise_cancelling_button.grid(row=0, column=2, padx=5, pady=(0,5), sticky="e")
+
+        self.stop_noise_cancelling_button = tk.Button(self, text="Stop", command=self.stop_noise_cancelling, state=tk.DISABLED)
+        self.stop_noise_cancelling_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
 
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
                                     bg=tkinter_hex, relief="flat")
@@ -351,6 +186,56 @@ class Application(tk.Tk):
             self.info_text.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=(10,0))
             # self.info_text.configure(bg_color="#1F6AA5", text_color="#F0F0F0", corner_radius=10, font=("PT Sans", 14))
         self.info_text.grid_remove()
+
+    def start_noise_cancelling(self):
+        self.stop_noise_cancelling_button['state'] = tk.NORMAL
+        self.start_noise_cancelling_button['state'] = tk.DISABLED
+
+        CHUNK = 1024
+        WIDTH = 2
+        CHANNELS = 2
+        RATE = 44100
+
+        self.p = pyaudio.PyAudio()
+
+        def callback(in_data, frame_count, time_info, status):
+            audio_data = np.frombuffer(in_data, dtype=np.int16)
+            # filtered_data = self.apply_filter(audio_data)  # Funkcja do tłumienia szumu
+            # filtered_data = np.clip(filtered_data, -32768, 32767)  # ogranicz do zakresu int16
+            # filtered_data = np.nan_to_num(filtered_data)  # zamień NaN na 0
+            filtered_data=audio_data
+            return (filtered_data.astype(np.int16).tobytes(), pyaudio.paContinue)
+
+
+        self.stream = self.p.open(format=self.p.get_format_from_width(WIDTH),
+                        channels=CHANNELS,
+                        rate=RATE,
+                        input=True,
+                        output=True,
+                        stream_callback=callback)
+
+        self.stream.start_stream()
+
+    def stop_noise_cancelling(self):
+        self.stop_noise_cancelling_button['state'] = tk.DISABLED
+        self.start_noise_cancelling_button['state'] = tk.NORMAL
+        if self.stream:
+            self.stream.stop_stream()
+            self.stream.close()
+        if self.p:
+            self.p.terminate()
+
+
+    def apply_filter(self, audio_data):
+        # Tu będzie logika filtracji. Dla uproszczenia dodajemy przykład tłumienia szumów w zakresie 400-500Hz.
+        # W rzeczywistości będziesz potrzebował bardziej zaawansowanego podejścia.
+
+        fs = 44100  # przykładowa częstotliwość próbkowania
+        lowcut = 400.0
+        highcut = 500.0
+
+        filtered_data = butter_bandstop_filter(audio_data, lowcut, highcut, fs, order=6)
+        return filtered_data
 
         
     def auto_refresh(self):
