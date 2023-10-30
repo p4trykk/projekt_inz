@@ -24,16 +24,38 @@ from numpy import int16
 import tkinter.font as tkFont
 import webbrowser
 import pyaudio
+import padasip as pa
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
 
 
 pygame.mixer.init()
 
+
+def save_to_drive(filename):
+    gauth = GoogleAuth()
+    gauth.LocalWebserverAuth()  # To autentykować się przez przeglądarkę
+
+    drive = GoogleDrive(gauth)
+
+    file_drive = drive.CreateFile({'title': filename})
+    file_drive.SetContentFile(filename)
+    file_drive.Upload()
+    print(f'{filename} zostal zapisany na Dysku Google.')
 
 def butter_bandstop_filter(data, lowcut, highcut, fs, order=6):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
     b, a = butter(order, [low, high], btype='bandstop')
+    y = lfilter(b, a, data)
+    return y
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
     y = lfilter(b, a, data)
     return y
 
@@ -79,6 +101,7 @@ class Application(tk.Tk):
         self.create_widgets()
         self.output_file = None
         self.stream = None
+        self.lms_filter = pa.filters.FilterLMS(n=100, mu=0.01, w="random")
         self.p = None
         self.state('zoomed') 
         self.file_for_menu_1 = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\szumy\\brown_noise.wav"
@@ -113,12 +136,15 @@ class Application(tk.Tk):
         #                             corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
         # self.filter_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
 
-        self.start_noise_cancelling_button = tk.Button(self, text="Start", command=self.start_noise_cancelling)
+        self.start_noise_cancelling_button = ctk.CTkButton(self, text="Start", command=self.start_noise_cancelling)
         self.start_noise_cancelling_button.grid(row=0, column=2, padx=5, pady=(0,5), sticky="e")
 
-        self.stop_noise_cancelling_button = tk.Button(self, text="Stop", command=self.stop_noise_cancelling, state=tk.DISABLED)
+        self.stop_noise_cancelling_button = ctk.CTkButton(self, text="Stop", command=self.stop_noise_cancelling)
         self.stop_noise_cancelling_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
 
+        self.save_to_drive_button = ctk.CTkButton(self, text="Save to Drive", command=self.save_files_to_drive)
+        self.save_to_drive_button.grid(row=0, column=2, padx=(705,5), pady=(0,5), sticky='w')  # Ustaw odpowiednie wartości dla grid
+        
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
                                     bg=tkinter_hex, relief="flat")
         self.play_button.grid(row=4, column=0, pady=(10,15), padx=(100, 10), sticky="ws")
@@ -187,6 +213,13 @@ class Application(tk.Tk):
             # self.info_text.configure(bg_color="#1F6AA5", text_color="#F0F0F0", corner_radius=10, font=("PT Sans", 14))
         self.info_text.grid_remove()
 
+    def save_files_to_drive(self):
+        folder_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\doDrivea"
+        for file_name in os.listdir(folder_path):
+            full_file_path = os.path.join(folder_path, file_name)
+            save_to_drive(full_file_path)
+
+
     def start_noise_cancelling(self):
         self.stop_noise_cancelling_button['state'] = tk.NORMAL
         self.start_noise_cancelling_button['state'] = tk.DISABLED
@@ -217,8 +250,8 @@ class Application(tk.Tk):
         self.stream.start_stream()
 
     def stop_noise_cancelling(self):
-        self.stop_noise_cancelling_button['state'] = tk.DISABLED
-        self.start_noise_cancelling_button['state'] = tk.NORMAL
+        # self.stop_noise_cancelling_button['state'] = ctk.DISABLED
+        # self.start_noise_cancelling_button['state'] = ctk.NORMAL
         if self.stream:
             self.stream.stop_stream()
             self.stream.close()
@@ -227,15 +260,11 @@ class Application(tk.Tk):
 
 
     def apply_filter(self, audio_data):
-        # Tu będzie logika filtracji. Dla uproszczenia dodajemy przykład tłumienia szumów w zakresie 400-500Hz.
-        # W rzeczywistości będziesz potrzebował bardziej zaawansowanego podejścia.
-
-        fs = 44100  # przykładowa częstotliwość próbkowania
-        lowcut = 400.0
-        highcut = 500.0
-
-        filtered_data = butter_bandstop_filter(audio_data, lowcut, highcut, fs, order=6)
-        return filtered_data
+        # Zakładając, że zakres ludzkiego głosu to 300-3400 Hz
+        lowcut = 300.0  
+        highcut = 3400.0  
+        y_filtered = butter_bandpass_filter(audio_data, lowcut, highcut, RATE, order=6)
+        return y_filtered
 
         
     def auto_refresh(self):
