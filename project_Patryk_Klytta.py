@@ -34,14 +34,13 @@ pygame.mixer.init()
 
 def save_to_drive(filename):
     gauth = GoogleAuth()
-    gauth.LocalWebserverAuth()  # To autentykować się przez przeglądarkę
-
+    gauth.LocalWebserverAuth()  
     drive = GoogleDrive(gauth)
-
     file_drive = drive.CreateFile({'title': filename})
     file_drive.SetContentFile(filename)
     file_drive.Upload()
     print(f'{filename} zostal zapisany na Dysku Google.')
+    
 
 def butter_bandstop_filter(data, lowcut, highcut, fs, order=6):
     nyq = 0.5 * fs
@@ -224,20 +223,18 @@ class Application(tk.Tk):
         self.stop_noise_cancelling_button['state'] = tk.NORMAL
         self.start_noise_cancelling_button['state'] = tk.DISABLED
 
-        CHUNK = 1024
-        WIDTH = 2
-        CHANNELS = 2
-        RATE = 44100
+        CHUNK = 1024 #ilosc probek w 1 przebiegu
+        WIDTH = 2 #bajty/probke (2=l.calkowite)
+        CHANNELS = 2 #kanaly audio, 2 = stereo
+        RATE = 44100 #probkowanie
 
         self.p = pyaudio.PyAudio()
 
         def callback(in_data, frame_count, time_info, status):
             audio_data = np.frombuffer(in_data, dtype=np.int16)
-            # filtered_data = self.apply_filter(audio_data)  # Funkcja do tłumienia szumu
-            # filtered_data = np.clip(filtered_data, -32768, 32767)  # ogranicz do zakresu int16
-            # filtered_data = np.nan_to_num(filtered_data)  # zamień NaN na 0
-            filtered_data=audio_data
+            filtered_data = self.apply_filter(audio_data, RATE)  # Zastosuj filtr LMS
             return (filtered_data.astype(np.int16).tobytes(), pyaudio.paContinue)
+
 
 
         self.stream = self.p.open(format=self.p.get_format_from_width(WIDTH),
@@ -259,8 +256,7 @@ class Application(tk.Tk):
             self.p.terminate()
 
 
-    def apply_filter(self, audio_data):
-        # Zakładając, że zakres ludzkiego głosu to 300-3400 Hz
+    def apply_filter(self, audio_data, RATE):
         lowcut = 300.0  
         highcut = 3400.0  
         y_filtered = butter_bandpass_filter(audio_data, lowcut, highcut, RATE, order=6)
