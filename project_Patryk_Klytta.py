@@ -203,6 +203,15 @@ class Application(tk.Tk):
         self.lowcut_scale.set(300)  
         self.lowcut_scale.grid(row=2, column=0, columnspan=2, sticky="ne", padx=(0,45), pady=(50,0))
         
+        self.filter_button_1 = ctk.CTkButton(self, text="Filter 1", command=lambda: self.set_filter_function(self.butter_bandpass_filter_1), corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_1.grid(row=2, column=0, columnspan=2, padx=(0,40), pady=(90,5), sticky="ne")
+
+        self.filter_button_2 = ctk.CTkButton(self, text="Filter 2", command=lambda: self.set_filter_function(self.butter_bandpass_filter_2), corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_2.grid(row=2, column=0, columnspan=2, padx=(0,40), pady=(130,5), sticky="ne")
+
+        self.filter_button_3 = ctk.CTkButton(self, text="Filter 3", command=lambda: self.set_filter_function(self.butter_bandpass_filter_3), corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_3.grid(row=2, column=0, columnspan=2, padx=(0,40), pady=(170,5), sticky="ne")
+
         self.lowcut_value_label = ctk.CTkLabel(self, text="300 ", fg_color="#1F6AA5", width=40)  
         self.lowcut_value_label.grid(row=2, column=0,  columnspan=2, sticky="ne", padx=(0,2), pady=(44,0))
         
@@ -211,7 +220,7 @@ class Application(tk.Tk):
             self.info_text.grid(row=3, column=0, columnspan=2, sticky="nsew", padx=(10,0))
             # self.info_text.configure(bg_color="#1F6AA5", text_color="#F0F0F0", corner_radius=10, font=("PT Sans", 14))
         self.info_text.grid_remove()
-
+    
     def save_files_to_drive(self):
         folder_path = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\doDrivea"
         for file_name in os.listdir(folder_path):
@@ -256,11 +265,30 @@ class Application(tk.Tk):
             self.p.terminate()
 
 
-    def apply_filter(self, audio_data, RATE):
-        lowcut = 300.0  
-        highcut = 3400.0  
-        y_filtered = butter_bandpass_filter(audio_data, lowcut, highcut, RATE, order=6)
+
+    def butter_bandpass_filter_1(self, data, RATE):
+        lowcut = 300.0
+        highcut = 3400.0
+        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
         return y_filtered
+
+    def butter_bandpass_filter_2(self, data, RATE):
+        lowcut = 400.0
+        highcut = 4400.0
+        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
+
+    def butter_bandpass_filter_3(self, data, RATE):
+        lowcut = 500.0
+        highcut = 5400.0
+        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
+
+    def set_filter_function(self, filter_function):
+        self.filter_function = filter_function
+
+    def apply_filter(self, audio_data, RATE):
+        return self.filter_function(audio_data, RATE)
 
         
     def auto_refresh(self):
