@@ -141,7 +141,7 @@ class Application(tk.Tk):
         self.stop_noise_cancelling_button = ctk.CTkButton(self, text="Stop", command=self.stop_noise_cancelling)
         self.stop_noise_cancelling_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
 
-        self.save_to_drive_button = ctk.CTkButton(self, text="Save to Drive", command=self.save_files_to_drive)
+        self.save_to_drive_button = ctk.CTkButton(self, text="Zapisz na Drive", command=self.save_files_to_drive)
         self.save_to_drive_button.grid(row=0, column=2, padx=(705,5), pady=(0,5), sticky='w')  # Ustaw odpowiednie wartości dla grid
         
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
@@ -195,25 +195,24 @@ class Application(tk.Tk):
         self.settings_box = ctk.CTkButton(self, width=150, height=410, corner_radius=10,  text="")
         self.settings_box.grid(row=2, column=0, columnspan=2, sticky="ne", pady=(5,0))
         self.settings_box.configure(state="disabled")
-
-        self.lowcut_label = tk.Label(self, text="Lowcut Value", font=("PT Sans", 12), bg="#1F6AA5", fg="#F0F0F0")
-        self.lowcut_label.grid(row=2, column=0, columnspan=2, sticky="ne", pady=(10, 5), padx=(0,25))
-
-        self.lowcut_scale = ctk.CTkSlider(self, from_=100, to=1000, command=self.update_lowcut_value, width=100, bg_color="#1F6AA5", button_color="#F0F0F0")
-        self.lowcut_scale.set(300)  
-        self.lowcut_scale.grid(row=2, column=0, columnspan=2, sticky="ne", padx=(0,45), pady=(50,0))
         
-        self.filter_button_1 = ctk.CTkButton(self, text="Filter 1", command=lambda: self.set_filter_function(self.butter_bandpass_filter_1), corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
-        self.filter_button_1.grid(row=2, column=0, columnspan=2, padx=(0,40), pady=(90,5), sticky="ne")
+        self.filter_label = tk.Label(self, text="Wybierz filtr:", font=("PT Sans", 12), bg="#1F6AA5", fg="#F0F0F0")
+        self.filter_label.grid(row=2, column=0, columnspan=2, sticky="ne", pady=(10, 5), padx=(0,25))
 
-        self.filter_button_2 = ctk.CTkButton(self, text="Filter 2", command=lambda: self.set_filter_function(self.butter_bandpass_filter_2), corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
-        self.filter_button_2.grid(row=2, column=0, columnspan=2, padx=(0,40), pady=(130,5), sticky="ne")
+        self.filter_button_1 = ctk.CTkButton(self, text="Filtr 1", command=lambda: self.set_filter_function(self.butter_bandpass_filter_1), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_1.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(60,5), sticky="ne")
 
-        self.filter_button_3 = ctk.CTkButton(self, text="Filter 3", command=lambda: self.set_filter_function(self.butter_bandpass_filter_3), corner_radius=10, width=30, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
-        self.filter_button_3.grid(row=2, column=0, columnspan=2, padx=(0,40), pady=(170,5), sticky="ne")
+        self.filter_button_2 = ctk.CTkButton(self, text="Filtr 2", command=lambda: self.set_filter_function(self.butter_bandpass_filter_2), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_2.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(100,5), sticky="ne")
 
-        self.lowcut_value_label = ctk.CTkLabel(self, text="300 ", fg_color="#1F6AA5", width=40)  
-        self.lowcut_value_label.grid(row=2, column=0,  columnspan=2, sticky="ne", padx=(0,2), pady=(44,0))
+        self.filter_button_3 = ctk.CTkButton(self, text="Filtr 3", command=lambda: self.set_filter_function(self.butter_bandpass_filter_3), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_3.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(140,5), sticky="ne")
+
+        self.filter_button_4 = ctk.CTkButton(self, text="Filtr 4", command=lambda: self.set_filter_function(self.butter_bandpass_filter_4), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_4.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(180,5), sticky="ne")
+
+        self.filter_button_5 = ctk.CTkButton(self, text="Filtr 5", command=lambda: self.set_filter_function(self.butter_bandpass_filter_5), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_5.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(220,5), sticky="ne")
         
         if not self.info_text:
             self.info_text = ctk.CTkButton(self, width=200, height=150, corner_radius=10)
@@ -267,20 +266,32 @@ class Application(tk.Tk):
 
 
     def butter_bandpass_filter_1(self, data, RATE):
-        lowcut = 300.0
+        lowcut = 100.0
         highcut = 3400.0
         y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
         return y_filtered
 
     def butter_bandpass_filter_2(self, data, RATE):
-        lowcut = 400.0
+        lowcut = 200.0
         highcut = 4400.0
         y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
         return y_filtered
 
     def butter_bandpass_filter_3(self, data, RATE):
-        lowcut = 500.0
+        lowcut = 300.0
         highcut = 5400.0
+        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
+    
+    def butter_bandpass_filter_4(self, data, RATE):
+        lowcut = 400.0
+        highcut = 4400.0
+        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
+    
+    def butter_bandpass_filter_5(self, data, RATE):
+        lowcut = 500.0
+        highcut = 4400.0
         y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
         return y_filtered
 
@@ -306,7 +317,7 @@ class Application(tk.Tk):
             self.tooltip = tk.Toplevel(self)
             self.tooltip.wm_overrideredirect(True)
             self.tooltip.configure(bg="#D4D4D4", padx=10, pady=5)  
-            tk.Label(self.tooltip, text="Volume", bg="#D4D4D4").pack()
+            tk.Label(self.tooltip, text="Dźwięk", bg="#D4D4D4").pack()
 
         x, y, _, _ = self.volume_slider.bbox("insert")  
         x += self.volume_slider.winfo_rootx() + 20  
@@ -473,7 +484,7 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.configure(text="More information about brown noise click here.", cursor="hand2")
+        self.info_text.configure(text="Kliknij tutaj aby uzyskać więcej informacji.", cursor="hand2")
         self.info_text.bind("<Button-1>", self.open_webpage_brownNoise)
 
     def menu_command_2(self):
@@ -494,7 +505,7 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.configure(text="More information about white noise click here.", cursor="hand2")
+        self.info_text.configure(text="Kliknij tutaj aby uzyskać więcej informacji.", cursor="hand2")
         self.info_text.bind("<Button-1>", self.open_webpage_whiteNoise)
 
     def menu_command_3(self):
@@ -515,7 +526,7 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.configure(text="More information about pink noise click here.", cursor="hand2")
+        self.info_text.configure(text="Kliknij tutaj aby uzyskać więcej informacji.", cursor="hand2")
         self.info_text.bind("<Button-1>", self.open_webpage_pinkNoise)
 
     def menu_command_4(self):
@@ -536,7 +547,7 @@ class Application(tk.Tk):
         self.progressbar["value"] = 0
         self.after(100, self.update_progressbar, duration_ms)
         self.info_text.grid()
-        self.info_text.configure(text="More information about green noise click here.", cursor="hand2")
+        self.info_text.configure(text="Kliknij tutaj aby uzyskać więcej informacji.", cursor="hand2")
         self.info_text.bind("<Button-1>", self.open_webpage_greenNoise)
 
 if __name__ == "__main__":
