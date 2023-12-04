@@ -1,27 +1,14 @@
 import numpy as np
-import scipy.io.wavfile as wav
-from scipy.signal import butter, lfilter, buttord, filtfilt
-import matplotlib.pyplot as plt
+from scipy.signal import butter, lfilter
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.patches import Rectangle
-from tkinter import Tk, Button, filedialog, PhotoImage, Scale, HORIZONTAL, messagebox
+from tkinter import PhotoImage, HORIZONTAL
 import tkinter as tk
 import tkinter.ttk as ttk
 import pygame
-import time
 import os
 import customtkinter as ctk
-from customtkinter import CTkImage
-import threading
-from scipy.fftpack import fft, ifft
-from scipy.signal import hilbert
-import wavio
 from PIL import Image, ImageTk
-from scipy.io.wavfile import write
-from scipy.stats import norm
-from numpy import int16
-import tkinter.font as tkFont
 import webbrowser
 import pyaudio
 import padasip as pa
@@ -75,20 +62,6 @@ tkinter_rgb = tuple(int(x * 255) for x in matplotlib_rgb)
 tkinter_hex = rgb_to_hex(tkinter_rgb)
 
 
-LIGHT_MODE = {
-    "bg": "#EDEDED",
-    "btn_bg": "#D4D4D4",
-    "btn_active": "#B5B5B5",
-    "text": "#000000",
-}
-
-# DARK_MODE = {
-#     "bg": "#2D2D2D",
-#     "btn_bg": "#3F3F3F",
-#     "btn_active": "#5F5F5F",
-#     "text": "#FFFFFF",
-# }
-
 
 class Application(tk.Tk):
     def __init__(self):
@@ -126,14 +99,6 @@ class Application(tk.Tk):
 
         self.app_name_label = tk.Label(self, text="AudioSpectra", font=("PT Sans", 24), bg=tkinter_hex)
         self.app_name_label.grid(row=0, column=1, pady=(0,5), sticky='w')
-
-        # self.input_button = ctk.CTkButton(self, text="Select input file", command=self.select_input, 
-        #                             corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
-        # self.input_button.grid(row=0, column=2, padx=5, pady=(0,5), sticky="e")  
-
-        # self.filter_button = ctk.CTkButton(self, text="Filter", command=self.filter, 
-        #                             corner_radius=10, hover_color='#100d33', font=("PT Sans", 14))
-        # self.filter_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
 
         self.start_noise_cancelling_button = ctk.CTkButton(self, text="Start", command=self.start_noise_cancelling)
         self.start_noise_cancelling_button.grid(row=0, column=2, padx=5, pady=(0,5), sticky="e")
@@ -199,19 +164,19 @@ class Application(tk.Tk):
         self.filter_label = tk.Label(self, text="Wybierz filtr:", font=("PT Sans", 12), bg="#1F6AA5", fg="#F0F0F0")
         self.filter_label.grid(row=2, column=0, columnspan=2, sticky="ne", pady=(10, 5), padx=(0,25))
 
-        self.filter_button_1 = ctk.CTkButton(self, text="Filtr 1", command=lambda: self.set_filter_function(self.butter_bandpass_filter_1), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_1 = ctk.CTkButton(self, text="Mowa ludzka", command=lambda: self.set_filter_function(self.butter_bandpass_filter_1), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
         self.filter_button_1.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(60,5), sticky="ne")
 
-        self.filter_button_2 = ctk.CTkButton(self, text="Filtr 2", command=lambda: self.set_filter_function(self.butter_bandpass_filter_2), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_2 = ctk.CTkButton(self, text="Ruch uliczny", command=lambda: self.set_filter_function(self.butter_bandpass_filter_2), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
         self.filter_button_2.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(100,5), sticky="ne")
 
-        self.filter_button_3 = ctk.CTkButton(self, text="Filtr 3", command=lambda: self.set_filter_function(self.butter_bandpass_filter_3), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_3 = ctk.CTkButton(self, text="Odkurzacz", command=lambda: self.set_filter_function(self.butter_bandpass_filter_3), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
         self.filter_button_3.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(140,5), sticky="ne")
 
-        self.filter_button_4 = ctk.CTkButton(self, text="Filtr 4", command=lambda: self.set_filter_function(self.butter_bandpass_filter_4), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_4 = ctk.CTkButton(self, text="Kosiarka", command=lambda: self.set_filter_function(self.butter_bandpass_filter_4), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
         self.filter_button_4.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(180,5), sticky="ne")
 
-        self.filter_button_5 = ctk.CTkButton(self, text="Filtr 5", command=lambda: self.set_filter_function(self.butter_bandpass_filter_5), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
+        self.filter_button_5 = ctk.CTkButton(self, text="Szum wiatru", command=lambda: self.set_filter_function(self.butter_bandpass_filter_5), corner_radius=10, width=120, hover_color='#100d33', font=("PT Sans", 14), bg_color="#1F6AA5", border_width=1)
         self.filter_button_5.grid(row=2, column=0, columnspan=2, padx=(0,14), pady=(220,5), sticky="ne")
         
         if not self.info_text:
@@ -244,7 +209,6 @@ class Application(tk.Tk):
             return (filtered_data.astype(np.int16).tobytes(), pyaudio.paContinue)
 
 
-
         self.stream = self.p.open(format=self.p.get_format_from_width(WIDTH),
                         channels=CHANNELS,
                         rate=RATE,
@@ -255,48 +219,44 @@ class Application(tk.Tk):
         self.stream.start_stream()
 
     def stop_noise_cancelling(self):
-        # self.stop_noise_cancelling_button['state'] = ctk.DISABLED
-        # self.start_noise_cancelling_button['state'] = ctk.NORMAL
         if self.stream:
             self.stream.stop_stream()
             self.stream.close()
         if self.p:
             self.p.terminate()
 
-
-
-    def butter_bandpass_filter_1(self, data, RATE):
-        lowcut = 100.0
-        highcut = 3400.0
-        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
-        return y_filtered
-
-    def butter_bandpass_filter_2(self, data, RATE):
-        lowcut = 200.0
-        highcut = 4400.0
-        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
-        return y_filtered
-
-    def butter_bandpass_filter_3(self, data, RATE):
-        lowcut = 300.0
-        highcut = 5400.0
-        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
-        return y_filtered
-    
-    def butter_bandpass_filter_4(self, data, RATE):
-        lowcut = 400.0
-        highcut = 4400.0
-        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
-        return y_filtered
-    
-    def butter_bandpass_filter_5(self, data, RATE):
-        lowcut = 500.0
-        highcut = 4400.0
-        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
-        return y_filtered
-
     def set_filter_function(self, filter_function):
         self.filter_function = filter_function
+
+    def butter_bandpass_filter_1(self, data, RATE): #mowa ludzka
+        lowcut = 50.0
+        highcut = 5000.0
+        y_filtered = butter_bandstop_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
+
+    def butter_bandpass_filter_2(self, data, RATE): #ruch uliczny (heavy trucks)
+        lowcut = 500.0
+        highcut = 1500.0
+        y_filtered = butter_bandstop_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
+
+    def butter_bandpass_filter_3(self, data, RATE): #odkurzacz
+        lowcut = 200.0
+        highcut = 10000.0
+        y_filtered = butter_bandstop_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
+    
+    def butter_bandpass_filter_4(self, data, RATE): #kosiarka
+        lowcut = 3500.0
+        highcut = 20000.0
+        y_filtered = butter_bandpass_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
+    
+    def butter_bandpass_filter_5(self, data, RATE): #szum wiatru
+        lowcut = 50.0
+        highcut = 20000.0
+        y_filtered = butter_bandstop_filter(data, lowcut, highcut, RATE, order=6)
+        return y_filtered
 
     def apply_filter(self, audio_data, RATE):
         return self.filter_function(audio_data, RATE)
@@ -329,77 +289,77 @@ class Application(tk.Tk):
         if hasattr(self, 'tooltip'):  
             self.tooltip.withdraw()
 
-    def plot_frequency(self, data, fs):
-        fft = np.fft.fft(data)
-        frequencies = np.abs(fft)
-        freqs = np.fft.fftfreq(len(data), 1/fs)
-        self.figure.clf()
-        ax = self.figure.add_subplot(111)
-        ax.plot(freqs[:len(data)//2], frequencies[:len(data)//2], color='#000441')  
-        ax.set_xlabel('Frequency (Hz)')
-        ax.set_ylabel('Amplitude')
-        ax.set_title('Frequency Spectrum')
-        self.canvas.draw()
+    # def plot_frequency(self, data, fs):
+    #     fft = np.fft.fft(data)
+    #     frequencies = np.abs(fft)
+    #     freqs = np.fft.fftfreq(len(data), 1/fs)
+    #     self.figure.clf()
+    #     ax = self.figure.add_subplot(111)
+    #     ax.plot(freqs[:len(data)//2], frequencies[:len(data)//2], color='#000441')  
+    #     ax.set_xlabel('Frequency (Hz)')
+    #     ax.set_ylabel('Amplitude')
+    #     ax.set_title('Frequency Spectrum')
+    #     self.canvas.draw()
 
-    def select_input(self):
-        self.input_file = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
-        fs, data = wav.read(self.input_file)
-        self.plot_frequency(data, fs)
-        if self.info_text:
-            self.info_text.grid_remove()
+    # def select_input(self):
+    #     self.input_file = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
+    #     fs, data = wav.read(self.input_file)
+    #     self.plot_frequency(data, fs)
+    #     if self.info_text:
+    #         self.info_text.grid_remove()
 
     def update_lowcut_value(self, value):
         self.lowcut = round(float(value))
         self.lowcut_scale.set(self.lowcut)
         self.lowcut_value_label.configure(text=f"{value}")
 
-    def filter(self):
-        fs, data = wav.read(self.input_file)
+    # def filter(self):
+    #     fs, data = wav.read(self.input_file)
 
-        initial_rms = np.sqrt(np.mean(data**2))
+    #     initial_rms = np.sqrt(np.mean(data**2))
 
-        # lowcut = 300.0  
+    #     # lowcut = 300.0  
 
-        lowcut = self.lowcut
-        fs, data = wav.read(self.input_file)
-        nyq_rate = fs / 2.0
-        low = lowcut / nyq_rate
-        b, a = butter(6, low, btype='low')
-        y_filtered = lfilter(b, a, data)
+    #     lowcut = self.lowcut
+    #     fs, data = wav.read(self.input_file)
+    #     nyq_rate = fs / 2.0
+    #     low = lowcut / nyq_rate
+    #     b, a = butter(6, low, btype='low')
+    #     y_filtered = lfilter(b, a, data)
 
-        analytic_signal = hilbert(y_filtered)
-        amplitude_envelope = np.abs(analytic_signal)
+    #     analytic_signal = hilbert(y_filtered)
+    #     amplitude_envelope = np.abs(analytic_signal)
 
-        Y = fft(y_filtered)
-        freqs = np.fft.fftfreq(len(Y), 1/fs)
-        mask = np.where(freqs > 0)
-        desired_spectrum = np.ones_like(freqs)
-        desired_spectrum[mask] = 1 / np.sqrt(freqs[mask])
-        new_Y = Y * desired_spectrum[:, np.newaxis]  
-        new_y = np.real(ifft(new_Y))
+    #     Y = fft(y_filtered)
+    #     freqs = np.fft.fftfreq(len(Y), 1/fs)
+    #     mask = np.where(freqs > 0)
+    #     desired_spectrum = np.ones_like(freqs)
+    #     desired_spectrum[mask] = 1 / np.sqrt(freqs[mask])
+    #     new_Y = Y * desired_spectrum[:, np.newaxis]  
+    #     new_y = np.real(ifft(new_Y))
 
-        mixed_signal = data + new_y
-        current_rms = np.sqrt(np.mean(mixed_signal**2))
-        scaling_factor = initial_rms / current_rms
-        mixed_signal *= scaling_factor
+    #     mixed_signal = data + new_y
+    #     current_rms = np.sqrt(np.mean(mixed_signal**2))
+    #     scaling_factor = initial_rms / current_rms
+    #     mixed_signal *= scaling_factor
 
-        self.plot_frequency(mixed_signal, fs)
+    #     self.plot_frequency(mixed_signal, fs)
 
-        output_folder = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"
-        current_time = time.strftime("%Y%m%d-%H%M%S")
-        self.output_file = os.path.join(output_folder, f'output_{current_time}.wav')
-        wav.write(self.output_file, fs, mixed_signal.astype(np.int16))
+    #     output_folder = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"
+    #     current_time = time.strftime("%Y%m%d-%H%M%S")
+    #     self.output_file = os.path.join(output_folder, f'output_{current_time}.wav')
+    #     wav.write(self.output_file, fs, mixed_signal.astype(np.int16))
 
-        self.figure.set_size_inches(12, 6)
-        self.canvas.get_tk_widget().config(width=1200, height=600)
+    #     self.figure.set_size_inches(12, 6)
+    #     self.canvas.get_tk_widget().config(width=1200, height=600)
 
 
-        pygame.mixer.music.stop()
-        pygame.mixer.music.unload()
+    #     pygame.mixer.music.stop()
+    #     pygame.mixer.music.unload()
 
-        pygame.mixer.music.load(self.output_file)
+    #     pygame.mixer.music.load(self.output_file)
 
-        tk.messagebox.showinfo("Filtering", "Filtering finished!")
+    #     tk.messagebox.showinfo("Filtering", "Filtering finished!")
 
     def update_file_list(self):
         self.file_listbox.delete(0, tk.END)  
