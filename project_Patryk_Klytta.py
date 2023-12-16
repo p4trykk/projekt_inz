@@ -235,8 +235,8 @@ class Application(tk.Tk):
         return y_filtered
 
     def butter_bandpass_filter_2(self, data, RATE): #ruch uliczny (heavy trucks)
-        lowcut = 500.0
-        highcut = 1500.0
+        lowcut = 50.0
+        highcut = 6000.0
         y_filtered = butter_bandstop_filter(data, lowcut, highcut, RATE, order=6)
         return y_filtered
 
