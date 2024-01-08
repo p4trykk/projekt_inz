@@ -106,8 +106,8 @@ class Application(tk.Tk):
         self.stop_noise_cancelling_button = ctk.CTkButton(self, text="Stop", command=self.stop_noise_cancelling)
         self.stop_noise_cancelling_button.grid(row=0, column=3, padx=(5, 10), pady=(0,5), sticky="w")
 
-        self.save_to_drive_button = ctk.CTkButton(self, text="Zapisz na Drive", command=self.save_files_to_drive)
-        self.save_to_drive_button.grid(row=0, column=2, padx=(705,5), pady=(0,5), sticky='w')  # Ustaw odpowiednie wartości dla grid
+        self.save_to_drive_button = ctk.CTkButton(self, text="Dysk Google", command=self.save_files_to_drive)
+        self.save_to_drive_button.grid(row=0, column=2, padx=(705,5), pady=(0,5), sticky='w')
         
         self.play_button = tk.Button(self, image=self.play_icon, command=self.play, 
                                     bg=tkinter_hex, relief="flat")
@@ -193,8 +193,8 @@ class Application(tk.Tk):
 
 
     def start_noise_cancelling(self):
-        self.stop_noise_cancelling_button['state'] = tk.NORMAL
-        self.start_noise_cancelling_button['state'] = tk.DISABLED
+        # self.stop_noise_cancelling_button['state'] = tk.NORMAL
+        # self.start_noise_cancelling_button['state'] = tk.DISABLED
 
         CHUNK = 1024 #ilosc probek w 1 przebiegu
         WIDTH = 2 #bajty/probke (2=l.calkowite)
@@ -289,77 +289,12 @@ class Application(tk.Tk):
         if hasattr(self, 'tooltip'):  
             self.tooltip.withdraw()
 
-    # def plot_frequency(self, data, fs):
-    #     fft = np.fft.fft(data)
-    #     frequencies = np.abs(fft)
-    #     freqs = np.fft.fftfreq(len(data), 1/fs)
-    #     self.figure.clf()
-    #     ax = self.figure.add_subplot(111)
-    #     ax.plot(freqs[:len(data)//2], frequencies[:len(data)//2], color='#000441')  
-    #     ax.set_xlabel('Frequency (Hz)')
-    #     ax.set_ylabel('Amplitude')
-    #     ax.set_title('Frequency Spectrum')
-    #     self.canvas.draw()
-
-    # def select_input(self):
-    #     self.input_file = filedialog.askopenfilename(filetypes=[("WAV files", "*.wav")])
-    #     fs, data = wav.read(self.input_file)
-    #     self.plot_frequency(data, fs)
-    #     if self.info_text:
-    #         self.info_text.grid_remove()
 
     def update_lowcut_value(self, value):
         self.lowcut = round(float(value))
         self.lowcut_scale.set(self.lowcut)
         self.lowcut_value_label.configure(text=f"{value}")
 
-    # def filter(self):
-    #     fs, data = wav.read(self.input_file)
-
-    #     initial_rms = np.sqrt(np.mean(data**2))
-
-    #     # lowcut = 300.0  
-
-    #     lowcut = self.lowcut
-    #     fs, data = wav.read(self.input_file)
-    #     nyq_rate = fs / 2.0
-    #     low = lowcut / nyq_rate
-    #     b, a = butter(6, low, btype='low')
-    #     y_filtered = lfilter(b, a, data)
-
-    #     analytic_signal = hilbert(y_filtered)
-    #     amplitude_envelope = np.abs(analytic_signal)
-
-    #     Y = fft(y_filtered)
-    #     freqs = np.fft.fftfreq(len(Y), 1/fs)
-    #     mask = np.where(freqs > 0)
-    #     desired_spectrum = np.ones_like(freqs)
-    #     desired_spectrum[mask] = 1 / np.sqrt(freqs[mask])
-    #     new_Y = Y * desired_spectrum[:, np.newaxis]  
-    #     new_y = np.real(ifft(new_Y))
-
-    #     mixed_signal = data + new_y
-    #     current_rms = np.sqrt(np.mean(mixed_signal**2))
-    #     scaling_factor = initial_rms / current_rms
-    #     mixed_signal *= scaling_factor
-
-    #     self.plot_frequency(mixed_signal, fs)
-
-    #     output_folder = "C:\\Users\\pklyt\\Desktop\\studia\\inz\\zapisane_probki"
-    #     current_time = time.strftime("%Y%m%d-%H%M%S")
-    #     self.output_file = os.path.join(output_folder, f'output_{current_time}.wav')
-    #     wav.write(self.output_file, fs, mixed_signal.astype(np.int16))
-
-    #     self.figure.set_size_inches(12, 6)
-    #     self.canvas.get_tk_widget().config(width=1200, height=600)
-
-
-    #     pygame.mixer.music.stop()
-    #     pygame.mixer.music.unload()
-
-    #     pygame.mixer.music.load(self.output_file)
-
-    #     tk.messagebox.showinfo("Filtering", "Filtering finished!")
 
     def update_file_list(self):
         self.file_listbox.delete(0, tk.END)  
